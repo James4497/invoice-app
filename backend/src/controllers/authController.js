@@ -76,3 +76,11 @@ exports.login = async (req, res) => {
     fail(res, 500, "Something went wrong. Please try again.");
   }
 };
+
+exports.getMe = (req, res) => {
+  res.json({
+    success: true,
+    message: "Current user fetched successfully",
+    data: { user: formatUser(req.user) },
+  });
+};

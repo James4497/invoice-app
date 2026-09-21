@@ -35,7 +35,19 @@ const validateCustomer = (body, { requireName }) => {
   if (email !== undefined && email !== "" && (typeof email !== "string" || !emailRegex.test(email))) {
     return "Please provide a valid email address";
   }
-  if (phone !== undefined && typeof phone !== "string") return "Phone must be text";
+  if (phone !== undefined && phone !== "") {
+  if (typeof phone !== "string") return "Phone must be text";
+
+  const localPhoneRegex = /^0\d{10}$/;
+  const nigeriaInternationalRegex = /^\+234\d{10}$/;
+
+  if (
+    !localPhoneRegex.test(phone) &&
+    !nigeriaInternationalRegex.test(phone)
+  ) {
+    return "Please provide a valid Nigerian phone number";
+  }
+}
   if (address !== undefined && typeof address !== "string") return "Address must be text";
   return null;
 };

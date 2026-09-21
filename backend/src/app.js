@@ -5,6 +5,7 @@ const rateLimit = require("express-rate-limit");
 const authRoutes = require("./routes/authRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const invoiceRoutes = require("./routes/invoiceRoutes");
+const { errorHandler, notFound } = require("./middleware/errorHandler");
 
 const app = express();
 
@@ -27,7 +28,7 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-  }),
+  })
 );
 
 app.use(express.json());
@@ -55,5 +56,9 @@ app.use("/api/auth/register", authLimiter);
 app.use("/api/auth", authRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/invoices", invoiceRoutes);
+
+// These two must stay at the very bottom, in this order — after every real route
+app.use(notFound);
+app.use(errorHandler);
 
 module.exports = app;

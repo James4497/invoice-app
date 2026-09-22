@@ -262,3 +262,44 @@ exports.deleteInvoice = async (req, res) => {
     serverError(res, error);
   }
 };
+exports.getSummary = async (req, res) => {
+  try {
+    const [totals, customerCount] = await Promise.all([
+      Invoice.aggregate([
+        {
+          $group: {
+            _id: "$status",
+            count: { $sum: 1 },
+            total: { $sum: "$total" },
+            amountPaid: { $sum: "$amountPaid" },
+          },
+        },
+      ]),
+      Customer.countDocuments(),
+    ]);
+
+    const byStatus = { unpaid: 0, "part-paid": 0, paid: 0 };
+    let totalInvoiced = 0;
+    let totalCollected = 0;
+
+    totals.forEach((row) => {
+      byStatus[row._id] = row.count;
+      totalInvoiced += row.total;
+      totalCollected += row.amountPaid;
+    });
+
+    res.json({
+      success: true,
+      message: "Summary fetched successfully",
+      data: {
+        totalCustomers: customerCount,
+        totalInvoiced: Math.round(totalInvoiced * 100) / 100,
+        totalCollected: Math.round(totalCollected * 100) / 100,
+        totalOutstanding: Math.round((totalInvoiced - totalCollected) * 100) / 100,
+        invoicesByStatus: byStatus,
+      },
+    });
+  } catch (error) {
+    serverError(res, error);
+  }
+};

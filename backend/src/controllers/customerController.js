@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Customer = require("../models/Customer");
+const Invoice = require("../models/Invoice");
 
 const emailRegex = /^\S+@\S+\.\S+$/;
 
@@ -142,6 +143,11 @@ exports.deleteCustomer = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return fail(res, 400, "Invalid customer ID");
+    }
+
+    const hasInvoices = await Invoice.exists({ customer: req.params.id });
+    if (hasInvoices) {
+      return fail(res, 409, "This customer has invoices and cannot be deleted");
     }
 
     const customer = await Customer.findByIdAndDelete(req.params.id);

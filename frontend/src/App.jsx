@@ -4,7 +4,10 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Customers from "./pages/Customers";
 import CustomerForm from "./pages/CustomerForm";
+import Invoices from "./pages/Invoices";
 import ProtectedRoute from "./components/ProtectedRoute";
+import InvoiceForm from "./pages/InvoiceForm";
+import InvoiceDetail from "./pages/InvoiceDetail";
 
 function App() {
   return (
@@ -43,6 +46,30 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/invoices"
+        element={
+          <ProtectedRoute>
+            <Invoices />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+  path="/invoices/new"
+  element={
+    <ProtectedRoute>
+      <InvoiceForm />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/invoices/:id"
+  element={
+    <ProtectedRoute>
+      <InvoiceDetail />
+    </ProtectedRoute>
+  }
+/>
       <Route path="*" element={<Navigate to="/dashboard" />} />
     </Routes>
   );

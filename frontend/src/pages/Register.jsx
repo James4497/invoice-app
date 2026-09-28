@@ -27,56 +27,64 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-slate-50 to-indigo-100 px-4">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm"
+        className="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-white w-full max-w-sm"
       >
-        <h1 className="text-2xl font-bold text-slate-800 mb-6">Create an account</h1>
+        <div className="mb-6 text-center">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 mx-auto mb-4 flex items-center justify-center text-white font-bold text-lg">
+            ₦
+          </div>
+          <h1 className="text-2xl font-bold text-slate-800">Create an account</h1>
+          <p className="text-sm text-slate-500 mt-1">Get started with Invoice App</p>
+        </div>
 
         {error && (
-          <p className="bg-red-50 text-red-600 text-sm rounded p-2 mb-4">{error}</p>
+          <p className="bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 px-4 py-3 mb-4">
+            {error}
+          </p>
         )}
 
-        <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1.5">Name</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          className="w-full border border-slate-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-slate-200 rounded-lg px-4 py-2.5 mb-4 outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
 
-        <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full border border-slate-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-slate-200 rounded-lg px-4 py-2.5 mb-4 outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
 
-        <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={6}
-          className="w-full border border-slate-300 rounded px-3 py-2 mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-slate-200 rounded-lg px-4 py-2.5 mb-6 outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white font-medium py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50"
         >
           {loading ? "Creating account..." : "Register"}
         </button>
 
-        <p className="text-sm text-slate-500 mt-4 text-center">
+        <p className="text-sm text-slate-500 mt-5 text-center">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 hover:underline">
+          <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium hover:underline">
             Log in
           </Link>
         </p>

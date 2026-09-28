@@ -74,7 +74,9 @@ function InvoiceDetail() {
   if (error) {
     return (
       <Layout>
-        <p className="text-red-600">{error}</p>
+        <p className="text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+          {error}
+        </p>
       </Layout>
     );
   }
@@ -86,35 +88,37 @@ function InvoiceDetail() {
           <h2 className="text-2xl font-bold text-slate-800">{invoice.invoiceNumber}</h2>
           <p className="text-slate-500 text-sm">{invoice.customer?.name}</p>
         </div>
-        <span className={`px-3 py-1 rounded text-sm font-medium ${statusStyles[invoice.status]}`}>
+        <span
+          className={`px-3 py-1.5 rounded-full text-sm font-semibold ${statusStyles[invoice.status]}`}
+        >
           {invoice.status}
         </span>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6 max-w-3xl">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6 max-w-3xl">
         <table className="w-full text-left text-sm mb-4">
-          <thead className="text-slate-500 border-b">
+          <thead className="text-slate-500 border-b border-slate-100">
             <tr>
-              <th className="py-2">Description</th>
-              <th className="py-2">Qty</th>
-              <th className="py-2">Unit Price</th>
-              <th className="py-2 text-right">Amount</th>
+              <th className="py-2.5 font-semibold text-xs uppercase tracking-wider">Description</th>
+              <th className="py-2.5 font-semibold text-xs uppercase tracking-wider">Qty</th>
+              <th className="py-2.5 font-semibold text-xs uppercase tracking-wider">Unit Price</th>
+              <th className="py-2.5 font-semibold text-xs uppercase tracking-wider text-right">Amount</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {invoice.items.map((item, i) => (
-              <tr key={i} className="border-b last:border-0">
-                <td className="py-2">{item.description}</td>
-                <td className="py-2">{item.quantity}</td>
-                <td className="py-2">{formatMoney(item.unitPrice)}</td>
-                <td className="py-2 text-right">{formatMoney(item.quantity * item.unitPrice)}</td>
+              <tr key={i}>
+                <td className="py-2.5">{item.description}</td>
+                <td className="py-2.5">{item.quantity}</td>
+                <td className="py-2.5">{formatMoney(item.unitPrice)}</td>
+                <td className="py-2.5 text-right">{formatMoney(item.quantity * item.unitPrice)}</td>
               </tr>
             ))}
           </tbody>
         </table>
 
         <div className="flex justify-end">
-          <div className="w-64 text-sm">
+          <div className="w-64 text-sm bg-slate-50 rounded-xl p-4">
             <div className="flex justify-between py-1">
               <span className="text-slate-500">Total</span>
               <span className="font-medium">{formatMoney(invoice.total)}</span>
@@ -123,7 +127,7 @@ function InvoiceDetail() {
               <span className="text-slate-500">Paid</span>
               <span className="font-medium text-green-600">{formatMoney(invoice.amountPaid)}</span>
             </div>
-            <div className="flex justify-between py-1 border-t mt-1 pt-2">
+            <div className="flex justify-between py-1 border-t border-slate-200 mt-1 pt-2">
               <span className="text-slate-700 font-medium">Balance</span>
               <span className="font-bold text-red-600">{formatMoney(invoice.balance)}</span>
             </div>
@@ -131,15 +135,19 @@ function InvoiceDetail() {
         </div>
 
         {invoice.notes && (
-          <p className="text-sm text-slate-500 mt-4 pt-4 border-t">Notes: {invoice.notes}</p>
+          <p className="text-sm text-slate-500 mt-4 pt-4 border-t border-slate-100">
+            Notes: {invoice.notes}
+          </p>
         )}
       </div>
 
       {invoice.status !== "paid" && (
-        <div className="bg-white rounded-lg shadow-sm p-6 max-w-md mb-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 max-w-md mb-6">
           <h3 className="font-medium text-slate-800 mb-3">Record a payment</h3>
           {paymentError && (
-            <p className="bg-red-50 text-red-600 text-sm rounded p-2 mb-3">{paymentError}</p>
+            <p className="bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 px-4 py-3 mb-3">
+              {paymentError}
+            </p>
           )}
           <form onSubmit={handlePayment} className="flex gap-2">
             <input
@@ -150,12 +158,12 @@ function InvoiceDetail() {
               value={paymentAmount}
               onChange={(e) => setPaymentAmount(e.target.value)}
               required
-              className="flex-1 border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 border border-slate-200 rounded-lg px-4 py-2.5 outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
               type="submit"
               disabled={paying}
-              className="bg-blue-600 text-white font-medium px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50"
             >
               {paying ? "Recording..." : "Record"}
             </button>
@@ -170,7 +178,10 @@ function InvoiceDetail() {
       )}
 
       {user?.role === "admin" && (
-        <button onClick={handleDelete} className="text-red-600 hover:underline text-sm">
+        <button
+          onClick={handleDelete}
+          className="text-red-600 hover:text-red-700 font-medium hover:underline text-sm"
+        >
           Delete Invoice
         </button>
       )}

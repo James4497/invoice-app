@@ -5,6 +5,9 @@ import Layout from "../components/Layout";
 
 const emptyItem = { description: "", quantity: 1, unitPrice: 0 };
 
+const inputClass =
+  "w-full border border-slate-200 rounded-lg px-4 py-2.5 outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+
 function InvoiceForm() {
   const navigate = useNavigate();
 
@@ -74,19 +77,26 @@ function InvoiceForm() {
     <Layout>
       <h2 className="text-2xl font-bold text-slate-800 mb-6">New Invoice</h2>
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm max-w-3xl">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-7 rounded-2xl shadow-sm border border-slate-100 max-w-3xl"
+      >
         {error && (
-          <p className="bg-red-50 text-red-600 text-sm rounded p-2 mb-4">{error}</p>
+          <p className="bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 px-4 py-3 mb-5">
+            {error}
+          </p>
         )}
 
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Customer *</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Customer *
+            </label>
             <select
               value={customerId}
               onChange={(e) => setCustomerId(e.target.value)}
               required
-              className="w-full border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClass}
             >
               <option value="">Select a customer</option>
               {customers.map((c) => (
@@ -97,27 +107,32 @@ function InvoiceForm() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Due date</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Due date
+            </label>
             <input
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputClass}
             />
           </div>
         </div>
 
         <label className="block text-sm font-medium text-slate-700 mb-2">Items *</label>
-        <div className="space-y-2 mb-2">
+        <div className="space-y-3 mb-2">
           {items.map((item, index) => (
-            <div key={index} className="flex gap-2 items-start">
+            <div
+              key={index}
+              className="flex gap-2 items-start bg-slate-50 border border-slate-100 rounded-xl p-3"
+            >
               <input
                 type="text"
                 placeholder="Description"
                 value={item.description}
                 onChange={(e) => updateItem(index, "description", e.target.value)}
                 required
-                className="flex-1 border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`flex-1 bg-white ${inputClass}`}
               />
               <input
                 type="number"
@@ -127,7 +142,7 @@ function InvoiceForm() {
                 value={item.quantity}
                 onChange={(e) => updateItem(index, "quantity", e.target.value)}
                 required
-                className="w-24 border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-24 bg-white ${inputClass}`}
               />
               <input
                 type="number"
@@ -137,13 +152,13 @@ function InvoiceForm() {
                 value={item.unitPrice}
                 onChange={(e) => updateItem(index, "unitPrice", e.target.value)}
                 required
-                className="w-32 border border-slate-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-32 bg-white ${inputClass}`}
               />
               <button
                 type="button"
                 onClick={() => removeItem(index)}
                 disabled={items.length === 1}
-                className="text-red-600 hover:underline px-2 py-2 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="text-red-600 hover:text-red-700 font-medium hover:underline px-2 py-2.5 disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 Remove
               </button>
@@ -154,37 +169,40 @@ function InvoiceForm() {
         <button
           type="button"
           onClick={addItem}
-          className="text-blue-600 hover:underline text-sm mb-6"
+          className="text-blue-600 hover:text-blue-700 font-medium hover:underline text-sm mb-6"
         >
           + Add item
         </button>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Notes</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">Notes</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
-            className="w-full border border-slate-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={`${inputClass} mb-4`}
           />
         </div>
 
-        <p className="text-right text-lg font-bold text-slate-800 mb-4">
-          Estimated total: ₦{previewTotal.toLocaleString()}
+        <p className="text-right text-lg font-bold text-slate-800 mb-5">
+          Estimated total:{" "}
+          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            ₦{previewTotal.toLocaleString()}
+          </span>
         </p>
 
         <div className="flex gap-3">
           <button
             type="submit"
             disabled={saving}
-            className="bg-blue-600 text-white font-medium px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium px-6 py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50"
           >
             {saving ? "Creating..." : "Create Invoice"}
           </button>
           <button
             type="button"
             onClick={() => navigate("/invoices")}
-            className="bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded"
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-lg transition-colors duration-200"
           >
             Cancel
           </button>

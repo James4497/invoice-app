@@ -1,19 +1,24 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
 import Layout from "../components/Layout";
 
-const emptyItem = { description: "", quantity: 1, unitPrice: 0 };
 const CURRENCIES = ["NGN", "USD", "EUR", "GBP"];
+const emptyItem = { description: "", quantity: 1, unitPrice: 0 };
 
 const inputClass =
   "w-full border border-slate-300 rounded-lg px-3 py-2 outline-none transition-all focus:ring-2 focus:ring-emerald-500 focus:border-transparent";
 
-function InvoiceForm() {
+const cellClass =
+  "border border-slate-200 rounded-md px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500";
+
+function InvoiceEdit() {
+  const { id } = useParams();
   const navigate = useNavigate();
 
-  const [customers, setCustomers] = useState([]);
-  const [customerId, setCustomerId] = useState("");
+  const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [amountPaid, setAmountPaid] = useState(0);
   const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
   const [poNumber, setPoNumber] = useState("");
@@ -21,15 +26,40 @@ function InvoiceForm() {
   const [currency, setCurrency] = useState("NGN");
   const [subject, setSubject] = useState("");
   const [items, setItems] = useState([{ ...emptyItem }]);
+
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     api
-      .get("/customers", { params: { limit: 100 } })
-      .then((res) => setCustomers(res.data.data.customers))
-      .catch(() => setError("Failed to load customers"));
-  }, []);
+      .get(`/invoices/${id}`)
+      .then((res) => {
+        const inv = res.data.data.invoice;
+        if (inv.status === "paid") {
+          setError("A fully paid invoice cannot be edited");
+          return;
+        }
+        setInvoiceNumber(inv.invoiceNumber);
+        setCustomerName(inv.customer?.name || "");
+        setAmountPaid(inv.amountPaid || 0);
+        setDueDate(inv.dueDate ? inv.dueDate.slice(0, 10) : "");
+        setNotes(inv.notes || "");
+        setPoNumber(inv.poNumber || "");
+        setTaxNumber(inv.taxNumber || "");
+        setCurrency(inv.currency || "NGN");
+        setSubject(inv.subject || "");
+        setItems(
+          inv.items.map((i) => ({
+            description: i.description,
+            quantity: i.quantity,
+            unitPrice: i.unitPrice,
+          }))
+        );
+      })
+      .catch((err) => setError(err.response?.data?.message || "Failed to load invoice"))
+      .finally(() => setLoading(false));
+  }, [id]);
 
   const updateItem = (index, field, value) => {
     const updated = [...items];
@@ -52,14 +82,15 @@ function InvoiceForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (!customerId) {
-      setError("Please select a customer");
+
+    if (previewTotal < amountPaid) {
+      setError("The new total cannot be less than the amount already paid");
       return;
     }
+
     setSaving(true);
     try {
-      await api.post("/invoices", {
-        customer: customerId,
+      await api.put(`/invoices/${id}`, {
         dueDate: dueDate || undefined,
         notes,
         poNumber,
@@ -72,20 +103,40 @@ function InvoiceForm() {
           unitPrice: Number(item.unitPrice),
         })),
       });
-      navigate("/invoices");
+      navigate(`/invoices/${id}`);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to create invoice");
+      setError(err.response?.data?.message || "Failed to update invoice");
     } finally {
       setSaving(false);
     }
   };
 
+  if (loading) {
+    return (
+      <Layout>
+        <p className="text-slate-500">Loading...</p>
+      </Layout>
+    );
+  }
+
+  if (!invoiceNumber) {
+    return (
+      <Layout>
+        <p className="text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+          {error || "Invoice not found"}
+        </p>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden max-w-4xl animate-fade-in-up">
         <div className="flex justify-between items-center px-8 pt-8 pb-5 border-b-2 border-emerald-500">
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">New Invoice</h2>
-          <span className="hidden sm:block text-sm text-slate-400">Fill in the details below</span>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+            Edit {invoiceNumber}
+          </h2>
+          <span className="hidden sm:block text-sm text-slate-400">{customerName}</span>
         </div>
 
         <form onSubmit={handleSubmit} className="p-8">
@@ -97,18 +148,13 @@ function InvoiceForm() {
 
           <div className="grid grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-sm font-bold text-slate-800 mb-1.5">Customer *</label>
-              <select
-                value={customerId}
-                onChange={(e) => setCustomerId(e.target.value)}
-                required
-                className={inputClass}
-              >
-                <option value="">Select a customer</option>
-                {customers.map((c) => (
-                  <option key={c._id} value={c._id}>{c.name}</option>
-                ))}
-              </select>
+              <label className="block text-sm font-bold text-slate-800 mb-1.5">Customer</label>
+              <input
+                type="text"
+                value={customerName}
+                disabled
+                className={`${inputClass} bg-slate-50 text-slate-500 cursor-not-allowed`}
+              />
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-800 mb-1.5">Currency</label>
@@ -131,7 +177,6 @@ function InvoiceForm() {
                 type="text"
                 value={poNumber}
                 onChange={(e) => setPoNumber(e.target.value)}
-                placeholder="Optional"
                 className={inputClass}
               />
             </div>
@@ -141,7 +186,6 @@ function InvoiceForm() {
                 type="text"
                 value={taxNumber}
                 onChange={(e) => setTaxNumber(e.target.value)}
-                placeholder="Optional"
                 className={inputClass}
               />
             </div>
@@ -163,7 +207,6 @@ function InvoiceForm() {
                 type="text"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                placeholder="e.g. Website redesign — Phase 1"
                 className={inputClass}
               />
             </div>
@@ -181,9 +224,7 @@ function InvoiceForm() {
               {items.map((item, index) => (
                 <div
                   key={index}
-                  className={`animate-fade-in-up grid grid-cols-[1fr_90px_120px_40px] gap-2 items-center px-4 py-2.5 ${
-                    index % 2 === 1 ? "bg-slate-50/50" : ""
-                  }`}
+                  className="grid grid-cols-[1fr_90px_120px_40px] gap-2 items-center px-4 py-2.5"
                 >
                   <input
                     type="text"
@@ -191,7 +232,7 @@ function InvoiceForm() {
                     value={item.description}
                     onChange={(e) => updateItem(index, "description", e.target.value)}
                     required
-                    className="border border-slate-200 rounded-md px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+                    className={cellClass}
                   />
                   <input
                     type="number"
@@ -200,7 +241,7 @@ function InvoiceForm() {
                     value={item.quantity}
                     onChange={(e) => updateItem(index, "quantity", e.target.value)}
                     required
-                    className="border border-slate-200 rounded-md px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+                    className={cellClass}
                   />
                   <input
                     type="number"
@@ -209,7 +250,7 @@ function InvoiceForm() {
                     value={item.unitPrice}
                     onChange={(e) => updateItem(index, "unitPrice", e.target.value)}
                     required
-                    className="border border-slate-200 rounded-md px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+                    className={cellClass}
                   />
                   <button
                     type="button"
@@ -242,9 +283,19 @@ function InvoiceForm() {
             />
           </div>
 
-          <p className="text-right text-2xl font-black text-slate-900 mb-6">
-            Total: <span className="text-emerald-600">{currency} {previewTotal.toLocaleString()}</span>
-          </p>
+          <div className="text-right mb-6">
+            <p className="text-2xl font-black text-slate-900">
+              Total:{" "}
+              <span className="text-emerald-600">
+                {currency} {previewTotal.toLocaleString()}
+              </span>
+            </p>
+            {amountPaid > 0 && (
+              <p className="text-sm text-slate-500 mt-1">
+                Already paid: {currency} {amountPaid.toLocaleString()}
+              </p>
+            )}
+          </div>
 
           <div className="flex gap-3">
             <button
@@ -252,11 +303,11 @@ function InvoiceForm() {
               disabled={saving}
               className="bg-emerald-500 text-slate-900 font-bold px-7 py-3 rounded-xl hover:bg-emerald-400 transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50"
             >
-              {saving ? "Creating..." : "Create Invoice"}
+              {saving ? "Saving..." : "Save Changes"}
             </button>
             <button
               type="button"
-              onClick={() => navigate("/invoices")}
+              onClick={() => navigate(`/invoices/${id}`)}
               className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-6 py-3 rounded-xl transition-colors duration-200"
             >
               Cancel
@@ -268,4 +319,4 @@ function InvoiceForm() {
   );
 }
 
-export default InvoiceForm;
+export default InvoiceEdit;

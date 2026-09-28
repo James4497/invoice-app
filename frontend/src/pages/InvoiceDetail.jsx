@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../api/axios";
 import Layout from "../components/Layout";
 import { useAuth } from "../context/AuthContext";
@@ -23,7 +23,10 @@ function InvoiceDetail() {
   const [paying, setPaying] = useState(false);
   const [paymentError, setPaymentError] = useState("");
 
-  const formatMoney = (n) => `₦${Number(n).toLocaleString()}`;
+  const formatMoney = (n, currency = "NGN") =>
+    new Intl.NumberFormat("en-NG", { style: "currency", currency }).format(Number(n));
+
+  const formatDate = (d) => (d ? new Date(d).toLocaleDateString() : "—");
 
   const loadInvoice = () => {
     setLoading(true);
@@ -81,21 +84,57 @@ function InvoiceDetail() {
     );
   }
 
+  const cur = invoice.currency || "NGN";
+
+  const details = [
+    { label: "Issue date", value: formatDate(invoice.issueDate) },
+    { label: "Due date", value: formatDate(invoice.dueDate) },
+    { label: "Currency", value: cur },
+    { label: "PO number", value: invoice.poNumber || "—" },
+    { label: "Tax number", value: invoice.taxNumber || "—" },
+    { label: "Customer email", value: invoice.customer?.email || "—" },
+  ];
+
   return (
     <Layout>
       <div className="flex justify-between items-start mb-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">{invoice.invoiceNumber}</h2>
+          {invoice.subject && (
+            <p className="text-slate-700 font-medium mt-1">{invoice.subject}</p>
+          )}
           <p className="text-slate-500 text-sm">{invoice.customer?.name}</p>
         </div>
-        <span
-          className={`px-3 py-1.5 rounded-full text-sm font-semibold ${statusStyles[invoice.status]}`}
-        >
-          {invoice.status}
-        </span>
+
+        <div className="flex items-center gap-3">
+          {invoice.status !== "paid" && (
+            <Link
+              to={`/invoices/${invoice._id}/edit`}
+              className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors duration-200"
+            >
+              Edit
+            </Link>
+          )}
+          <span
+            className={`px-3 py-1.5 rounded-full text-sm font-semibold ${statusStyles[invoice.status]}`}
+          >
+            {invoice.status}
+          </span>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6 max-w-3xl">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4 mb-6 pb-6 border-b border-slate-100">
+          {details.map((d) => (
+            <div key={d.label}>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                {d.label}
+              </p>
+              <p className="text-sm text-slate-800 mt-0.5 break-words">{d.value}</p>
+            </div>
+          ))}
+        </div>
+
         <table className="w-full text-left text-sm mb-4">
           <thead className="text-slate-500 border-b border-slate-100">
             <tr>
@@ -110,8 +149,10 @@ function InvoiceDetail() {
               <tr key={i}>
                 <td className="py-2.5">{item.description}</td>
                 <td className="py-2.5">{item.quantity}</td>
-                <td className="py-2.5">{formatMoney(item.unitPrice)}</td>
-                <td className="py-2.5 text-right">{formatMoney(item.quantity * item.unitPrice)}</td>
+                <td className="py-2.5">{formatMoney(item.unitPrice, cur)}</td>
+                <td className="py-2.5 text-right">
+                  {formatMoney(item.quantity * item.unitPrice, cur)}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -121,15 +162,17 @@ function InvoiceDetail() {
           <div className="w-64 text-sm bg-slate-50 rounded-xl p-4">
             <div className="flex justify-between py-1">
               <span className="text-slate-500">Total</span>
-              <span className="font-medium">{formatMoney(invoice.total)}</span>
+              <span className="font-medium">{formatMoney(invoice.total, cur)}</span>
             </div>
             <div className="flex justify-between py-1">
               <span className="text-slate-500">Paid</span>
-              <span className="font-medium text-green-600">{formatMoney(invoice.amountPaid)}</span>
+              <span className="font-medium text-green-600">
+                {formatMoney(invoice.amountPaid, cur)}
+              </span>
             </div>
             <div className="flex justify-between py-1 border-t border-slate-200 mt-1 pt-2">
               <span className="text-slate-700 font-medium">Balance</span>
-              <span className="font-bold text-red-600">{formatMoney(invoice.balance)}</span>
+              <span className="font-bold text-red-600">{formatMoney(invoice.balance, cur)}</span>
             </div>
           </div>
         </div>

@@ -46,7 +46,8 @@ function Invoices() {
     loadInvoices(value);
   };
 
-  const formatMoney = (n) => `₦${Number(n).toLocaleString()}`;
+  const formatMoney = (n, currency = "NGN") =>
+  new Intl.NumberFormat("en-NG", { style: "currency", currency }).format(Number(n));
 
   return (
     <Layout>
@@ -117,8 +118,8 @@ function Invoices() {
                   </Link>
                 </td>
                 <td className="px-5 py-3.5 text-slate-600">{inv.customer?.name || "—"}</td>
-                <td className="px-5 py-3.5 text-slate-600">{formatMoney(inv.total)}</td>
-                <td className="px-5 py-3.5 text-slate-600">{formatMoney(inv.balance)}</td>
+                <td className="px-5 py-3.5 text-slate-600">{formatMoney(inv.total, inv.currency)}</td>
+                <td className="px-5 py-3.5 text-slate-600">{formatMoney(inv.balance, inv.currency)}</td>
                 <td className="px-5 py-3.5">
                   <StatusBadge status={inv.status} />
                 </td>

@@ -15,6 +15,10 @@ const invoiceSchema = new mongoose.Schema(
   {
     invoiceNumber: { type: String, required: true, unique: true },
     customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer", required: true },
+    poNumber: { type: String, trim: true, default: "" },
+    taxNumber: { type: String, trim: true, default: "" },
+    currency: { type: String, enum: ["NGN", "USD", "EUR", "GBP"], default: "NGN" },
+    subject: { type: String, trim: true, default: "" },
     items: {
       type: [itemSchema],
       validate: [(items) => items.length > 0, "At least one item is required"],
@@ -30,12 +34,10 @@ const invoiceSchema = new mongoose.Schema(
   { timestamps: true, toJSON: { virtuals: true } }
 );
 
-// Amount still owed (shows up in responses, but isn't stored)
 invoiceSchema.virtual("balance").get(function () {
   return round2(this.total - this.amountPaid);
 });
 
-// Runs on every save: the server works out the total and the status
 invoiceSchema.pre("validate", async function () {
   this.total = round2(this.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0));
 

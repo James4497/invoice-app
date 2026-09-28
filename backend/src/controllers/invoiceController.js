@@ -4,6 +4,7 @@ const Customer = require("../models/Customer");
 const Counter = require("../models/Counter");
 
 const STATUSES = ["unpaid", "part-paid", "paid"];
+const CURRENCIES = ["NGN", "USD", "EUR", "GBP"];
 
 const fail = (res, status, message) =>
   res.status(status).json({ success: false, message, data: null });
@@ -57,14 +58,29 @@ const validateDueDate = (dueDate) => {
 const validateNotes = (notes) =>
   notes !== undefined && typeof notes !== "string" ? "Notes must be text" : null;
 
+const validateText = (value, label) =>
+  value !== undefined && typeof value !== "string" ? `${label} must be text` : null;
+
+const validateCurrency = (currency) => {
+  if (currency === undefined) return null;
+  return CURRENCIES.includes(currency) ? null : `Currency must be one of ${CURRENCIES.join(", ")}`;
+};
+
 exports.createInvoice = async (req, res) => {
   try {
-    const { customer, items, dueDate, notes } = req.body;
+    const { customer, items, dueDate, notes, poNumber, taxNumber, currency, subject } = req.body;
 
     if (!mongoose.isValidObjectId(customer)) {
       return fail(res, 400, "A valid customer is required");
     }
-    const problem = validateItems(items) || validateDueDate(dueDate) || validateNotes(notes);
+    const problem =
+      validateItems(items) ||
+      validateDueDate(dueDate) ||
+      validateNotes(notes) ||
+      validateText(poNumber, "PO number") ||
+      validateText(taxNumber, "Tax number") ||
+      validateText(subject, "Subject") ||
+      validateCurrency(currency);
     if (problem) return fail(res, 400, problem);
 
     const foundCustomer = await Customer.findById(customer);
@@ -83,6 +99,10 @@ exports.createInvoice = async (req, res) => {
       items: cleanItems(items),
       dueDate,
       notes,
+      poNumber,
+      taxNumber,
+      currency,
+      subject,
       createdBy: req.user._id,
     });
     await invoice.populate("customer", "name email phone");
@@ -167,15 +187,23 @@ exports.updateInvoice = async (req, res) => {
       return fail(res, 400, "Invalid invoice ID");
     }
 
-    const { items, dueDate, notes } = req.body;
-    if (items === undefined && dueDate === undefined && notes === undefined) {
+    const { items, dueDate, notes, poNumber, taxNumber, currency, subject } = req.body;
+    if (
+      [items, dueDate, notes, poNumber, taxNumber, currency, subject].every(
+        (v) => v === undefined
+      )
+    ) {
       return fail(res, 400, "Provide at least one field to update");
     }
 
     const problem =
       (items !== undefined ? validateItems(items) : null) ||
       validateDueDate(dueDate) ||
-      validateNotes(notes);
+      validateNotes(notes) ||
+      validateText(poNumber, "PO number") ||
+      validateText(taxNumber, "Tax number") ||
+      validateText(subject, "Subject") ||
+      validateCurrency(currency);
     if (problem) return fail(res, 400, problem);
 
     const invoice = await Invoice.findById(req.params.id);
@@ -194,6 +222,10 @@ exports.updateInvoice = async (req, res) => {
     }
     if (dueDate !== undefined) invoice.dueDate = dueDate;
     if (notes !== undefined) invoice.notes = notes;
+    if (poNumber !== undefined) invoice.poNumber = poNumber;
+    if (taxNumber !== undefined) invoice.taxNumber = taxNumber;
+    if (currency !== undefined) invoice.currency = currency;
+    if (subject !== undefined) invoice.subject = subject;
 
     await invoice.save(); // total and status are recalculated automatically
     await invoice.populate("customer", "name email phone");

@@ -8,6 +8,7 @@ import Invoices from "./pages/Invoices";
 import ProtectedRoute from "./components/ProtectedRoute";
 import InvoiceForm from "./pages/InvoiceForm";
 import InvoiceDetail from "./pages/InvoiceDetail";
+import InvoiceEdit from "./pages/InvoiceEdit";
 
 function App() {
   return (
@@ -70,6 +71,12 @@ function App() {
     </ProtectedRoute>
   }
 />
+<Route path="/invoices/:id/edit" 
+element={
+<ProtectedRoute>
+  <InvoiceEdit />
+  </ProtectedRoute>
+} />
       <Route path="*" element={<Navigate to="/dashboard" />} />
     </Routes>
   );

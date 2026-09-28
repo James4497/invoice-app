@@ -23,6 +23,9 @@ function InvoiceDetail() {
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paying, setPaying] = useState(false);
   const [paymentError, setPaymentError] = useState("");
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+
+  const [deleting, setDeleting] = useState(false);
 
   const formatMoney = (n, currency = "NGN") =>
     new Intl.NumberFormat("en-NG", { style: "currency", currency }).format(Number(n));
@@ -45,11 +48,14 @@ function InvoiceDetail() {
   const handlePayment = async (e) => {
     e.preventDefault();
     setPaymentError("");
+    setPaymentSuccess(false);
     setPaying(true);
     try {
       await api.post(`/invoices/${id}/payments`, { amount: Number(paymentAmount) });
       setPaymentAmount("");
       loadInvoice();
+      setPaymentSuccess(true);
+      setTimeout(() => setPaymentSuccess(false), 3000);
     } catch (err) {
       setPaymentError(err.response?.data?.message || "Failed to record payment");
     } finally {
@@ -59,11 +65,13 @@ function InvoiceDetail() {
 
   const handleDelete = async () => {
     if (!window.confirm(`Delete invoice "${invoice.invoiceNumber}"? This cannot be undone.`)) return;
+    setDeleting(true);
     try {
       await api.delete(`/invoices/${id}`);
       navigate("/invoices");
     } catch (err) {
       alert(err.response?.data?.message || "Failed to delete invoice");
+      setDeleting(false);
     }
   };
 
@@ -191,18 +199,28 @@ function InvoiceDetail() {
 
       {invoice.status !== "paid" && (
         <div className="animate-fade-in-up bg-white rounded-2xl shadow-sm border border-slate-100 p-6 max-w-md mb-6">
-          <h3 className="font-black text-slate-900 mb-3">Record a payment</h3>
+          <h3 className="text-lg font-black text-slate-900 mb-1">Record a payment</h3>
+          <p className="text-sm text-slate-500 mb-4">
+            Outstanding balance: <span className="font-semibold">{formatMoney(invoice.balance, cur)}</span>
+          </p>
+
           {paymentError && (
-            <p className="bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 px-4 py-3 mb-3">
+            <p className="animate-fade-in bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 px-4 py-3 mb-3">
               {paymentError}
             </p>
           )}
+          {paymentSuccess && (
+            <p className="animate-fade-in bg-emerald-50 text-emerald-700 text-sm rounded-lg border border-emerald-100 px-4 py-3 mb-3">
+              Payment recorded successfully.
+            </p>
+          )}
+
           <form onSubmit={handlePayment} className="flex gap-2">
             <input
               type="number"
               min="0.01"
               step="0.01"
-              placeholder="Amount"
+              placeholder={`Amount in ${cur}`}
               value={paymentAmount}
               onChange={(e) => setPaymentAmount(e.target.value)}
               required
@@ -220,18 +238,27 @@ function InvoiceDetail() {
       )}
 
       {invoice.status === "paid" && (
-        <p className="text-sm text-slate-500 mb-6">
-          This invoice is fully paid and can no longer be edited.
-        </p>
+        <div className="animate-fade-in-up bg-emerald-50 border border-emerald-100 rounded-2xl px-5 py-4 max-w-md mb-6">
+          <p className="text-sm font-semibold text-emerald-700">
+            This invoice is fully paid and can no longer be edited.
+          </p>
+        </div>
       )}
 
       {user?.role === "admin" && (
-        <button
-          onClick={handleDelete}
-          className="text-red-600 hover:text-red-700 font-medium hover:underline text-sm"
-        >
-          Delete Invoice
-        </button>
+        <div className="animate-fade-in-up bg-white rounded-2xl shadow-sm border border-red-100 p-6 max-w-md">
+          <h3 className="text-sm font-black text-red-600 mb-1">Warning</h3>
+          <p className="text-sm text-slate-500 mb-4">
+            Deleting this invoice removes it permanently and cannot be undone.
+          </p>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="bg-red-600 text-white font-bold px-5 py-2.5 rounded-lg hover:bg-red-700 transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50"
+          >
+            {deleting ? "Deleting..." : "Delete Invoice"}
+          </button>
+        </div>
       )}
     </Layout>
   );

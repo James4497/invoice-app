@@ -97,9 +97,11 @@ function InvoiceDetail() {
 
   return (
     <Layout>
-      <div className="flex justify-between items-start mb-6">
+      <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-emerald-500">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">{invoice.invoiceNumber}</h2>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+            {invoice.invoiceNumber}
+          </h2>
           {invoice.subject && (
             <p className="text-slate-700 font-medium mt-1">{invoice.subject}</p>
           )}
@@ -110,7 +112,7 @@ function InvoiceDetail() {
           {invoice.status !== "paid" && (
             <Link
               to={`/invoices/${invoice._id}/edit`}
-              className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors duration-200"
+              className="bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95"
             >
               Edit
             </Link>
@@ -123,7 +125,7 @@ function InvoiceDetail() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6 max-w-3xl">
+      <div className="animate-fade-in-up bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6 max-w-3xl">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4 mb-6 pb-6 border-b border-slate-100">
           {details.map((d) => (
             <div key={d.label}>
@@ -166,7 +168,7 @@ function InvoiceDetail() {
             </div>
             <div className="flex justify-between py-1">
               <span className="text-slate-500">Paid</span>
-              <span className="font-medium text-green-600">
+              <span className="font-medium text-emerald-600">
                 {formatMoney(invoice.amountPaid, cur)}
               </span>
             </div>
@@ -185,8 +187,8 @@ function InvoiceDetail() {
       </div>
 
       {invoice.status !== "paid" && (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 max-w-md mb-6">
-          <h3 className="font-medium text-slate-800 mb-3">Record a payment</h3>
+        <div className="animate-fade-in-up bg-white rounded-2xl shadow-sm border border-slate-100 p-6 max-w-md mb-6">
+          <h3 className="font-black text-slate-900 mb-3">Record a payment</h3>
           {paymentError && (
             <p className="bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 px-4 py-3 mb-3">
               {paymentError}
@@ -201,12 +203,12 @@ function InvoiceDetail() {
               value={paymentAmount}
               onChange={(e) => setPaymentAmount(e.target.value)}
               required
-              className="flex-1 border border-slate-200 rounded-lg px-4 py-2.5 outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 outline-none transition-all focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
             <button
               type="submit"
               disabled={paying}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50"
+              className="bg-emerald-500 text-slate-900 font-bold px-5 py-2.5 rounded-lg hover:bg-emerald-400 transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50"
             >
               {paying ? "Recording..." : "Record"}
             </button>

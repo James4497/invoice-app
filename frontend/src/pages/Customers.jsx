@@ -39,13 +39,15 @@ function Customers() {
     }
   };
 
+  const thClass = "px-5 py-3.5 font-semibold text-xs uppercase tracking-wider";
+
   return (
     <Layout>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-slate-800">Customers</h2>
+      <div className="flex justify-between items-end mb-6 pb-4 border-b-2 border-emerald-500">
+        <h2 className="text-3xl font-black text-slate-900 tracking-tight">Customers</h2>
         <Link
           to="/customers/new"
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+          className="bg-emerald-500 text-slate-900 text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-emerald-400 transition-all duration-200 hover:scale-105 active:scale-95"
         >
           + Add Customer
         </Link>
@@ -57,11 +59,11 @@ function Customers() {
           placeholder="Search by name, email or phone..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border border-slate-200 rounded-lg px-4 py-2.5 flex-1 max-w-sm outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="border border-slate-300 rounded-lg px-4 py-2.5 flex-1 max-w-sm bg-white outline-none transition-all focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
         />
         <button
           type="submit"
-          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200"
+          className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
         >
           Search
         </button>
@@ -77,10 +79,10 @@ function Customers() {
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
             <tr>
-              <th className="px-5 py-3.5 font-semibold text-xs uppercase tracking-wider">Name</th>
-              <th className="px-5 py-3.5 font-semibold text-xs uppercase tracking-wider">Email</th>
-              <th className="px-5 py-3.5 font-semibold text-xs uppercase tracking-wider">Phone</th>
-              <th className="px-5 py-3.5 font-semibold text-xs uppercase tracking-wider">Address</th>
+              <th className={thClass}>Name</th>
+              <th className={thClass}>Email</th>
+              <th className={thClass}>Phone</th>
+              <th className={thClass}>Address</th>
               <th className="px-5 py-3.5"></th>
             </tr>
           </thead>
@@ -99,8 +101,12 @@ function Customers() {
                 </td>
               </tr>
             )}
-            {customers.map((c) => (
-              <tr key={c._id} className="hover:bg-blue-50/50 transition-colors duration-150">
+            {customers.map((c, i) => (
+              <tr
+                key={c._id}
+                className="animate-fade-in hover:bg-emerald-50/50 transition-colors duration-150"
+                style={{ animationDelay: `${Math.min(i, 10) * 0.04}s` }}
+              >
                 <td className="px-5 py-3.5 font-medium text-slate-800">{c.name}</td>
                 <td className="px-5 py-3.5 text-slate-600">{c.email || "—"}</td>
                 <td className="px-5 py-3.5 text-slate-600">{c.phone || "—"}</td>

@@ -26,16 +26,16 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-slate-50 to-indigo-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-emerald-50 px-4">
       <form
         onSubmit={handleSubmit}
-        className="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-white w-full max-w-sm"
+        className="animate-scale-in bg-white p-8 rounded-2xl shadow-xl border border-emerald-100 w-full max-w-sm"
       >
-        <div className="mb-6 text-center">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 mx-auto mb-4 flex items-center justify-center text-white font-bold text-lg">
+        <div className="mb-7 text-center">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500 mx-auto mb-4 flex items-center justify-center text-slate-900 font-black text-lg">
             ₦
           </div>
-          <h1 className="text-2xl font-bold text-slate-800">Welcome back</h1>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Welcome back</h1>
           <p className="text-sm text-slate-500 mt-1">Log in to your Invoice App account</p>
         </div>
 
@@ -45,35 +45,35 @@ function Login() {
           </p>
         )}
 
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+        <label className="block text-sm font-bold text-slate-800 mb-1.5">Email</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full border border-slate-200 rounded-lg px-4 py-2.5 mb-4 outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full border border-slate-300 rounded-lg px-4 py-2.5 mb-4 outline-none transition-all focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
         />
 
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+        <label className="block text-sm font-bold text-slate-800 mb-1.5">Password</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full border border-slate-200 rounded-lg px-4 py-2.5 mb-6 outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full border border-slate-300 rounded-lg px-4 py-2.5 mb-6 outline-none transition-all focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
         />
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50"
+          className="w-full bg-emerald-500 text-slate-900 font-bold py-2.5 rounded-xl hover:bg-emerald-400 transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50"
         >
           {loading ? "Logging in..." : "Log in"}
         </button>
 
         <p className="text-sm text-slate-500 mt-5 text-center">
           Don't have an account?{" "}
-          <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium hover:underline">
+          <Link to="/register" className="text-emerald-700 font-semibold hover:underline">
             Register
           </Link>
         </p>

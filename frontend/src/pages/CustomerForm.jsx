@@ -3,6 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
 import Layout from "../components/Layout";
 
+const inputClass =
+  "w-full border border-slate-300 rounded-lg px-3 py-2 outline-none transition-all focus:ring-2 focus:ring-emerald-500 focus:border-transparent";
+
 function CustomerForm() {
   const { id } = useParams(); // present only when editing
   const isEditing = Boolean(id);
@@ -54,69 +57,75 @@ function CustomerForm() {
 
   return (
     <Layout>
-      <h2 className="text-2xl font-bold text-slate-800 mb-6">
-        {isEditing ? "Edit Customer" : "Add Customer"}
-      </h2>
-
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm max-w-md">
-        {error && (
-          <p className="bg-red-50 text-red-600 text-sm rounded p-2 mb-4">{error}</p>
-        )}
-
-        <label className="block text-sm font-medium text-slate-700 mb-1">Name *</label>
-        <input
-          type="text"
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-          required
-          className="w-full border border-slate-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-        <input
-          type="email"
-          name="email"
-          value={form.email}
-          onChange={handleChange}
-          className="w-full border border-slate-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <label className="block text-sm font-medium text-slate-700 mb-1">Phone</label>
-        <input
-          type="text"
-          name="phone"
-          value={form.phone}
-          onChange={handleChange}
-          className="w-full border border-slate-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <label className="block text-sm font-medium text-slate-700 mb-1">Address</label>
-        <input
-          type="text"
-          name="address"
-          value={form.address}
-          onChange={handleChange}
-          className="w-full border border-slate-300 rounded px-3 py-2 mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={saving}
-            className="bg-blue-600 text-white font-medium px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {saving ? "Saving..." : "Save"}
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/customers")}
-            className="bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded"
-          >
-            Cancel
-          </button>
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden max-w-md animate-fade-in-up">
+        <div className="px-8 pt-8 pb-5 border-b-2 border-emerald-500">
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+            {isEditing ? "Edit Customer" : "Add Customer"}
+          </h2>
         </div>
-      </form>
+
+        <form onSubmit={handleSubmit} className="p-8">
+          {error && (
+            <p className="bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 px-4 py-3 mb-5">
+              {error}
+            </p>
+          )}
+
+          <label className="block text-sm font-bold text-slate-800 mb-1.5">Name *</label>
+          <input
+            type="text"
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            required
+            className={`${inputClass} mb-5`}
+          />
+
+          <label className="block text-sm font-bold text-slate-800 mb-1.5">Email</label>
+          <input
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            className={`${inputClass} mb-5`}
+          />
+
+          <label className="block text-sm font-bold text-slate-800 mb-1.5">Phone</label>
+          <input
+            type="text"
+            name="phone"
+            value={form.phone}
+            onChange={handleChange}
+            className={`${inputClass} mb-5`}
+          />
+
+          <label className="block text-sm font-bold text-slate-800 mb-1.5">Address</label>
+          <input
+            type="text"
+            name="address"
+            value={form.address}
+            onChange={handleChange}
+            className={`${inputClass} mb-7`}
+          />
+
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              disabled={saving}
+              className="bg-emerald-500 text-slate-900 font-bold px-7 py-3 rounded-xl hover:bg-emerald-400 transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Save"}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/customers")}
+              className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-6 py-3 rounded-xl transition-colors duration-200"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
     </Layout>
   );
 }

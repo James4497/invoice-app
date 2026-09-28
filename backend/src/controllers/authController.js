@@ -2,12 +2,14 @@ const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
 
 const emailRegex = /^\S+@\S+\.\S+$/;
+const CURRENCIES = ["NGN", "USD", "EUR", "GBP"];
 
 const formatUser = (user) => ({
   id: user._id,
   name: user.name,
   email: user.email,
   role: user.role,
+  defaultCurrency: user.defaultCurrency || "NGN",
 });
 
 const fail = (res, status, message) =>
@@ -83,4 +85,72 @@ exports.getMe = (req, res) => {
     message: "Current user fetched successfully",
     data: { user: formatUser(req.user) },
   });
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name, defaultCurrency } = req.body;
+
+    if (name === undefined && defaultCurrency === undefined) {
+      return fail(res, 400, "Provide at least one field to update");
+    }
+    if (name !== undefined && (typeof name !== "string" || !name.trim())) {
+      return fail(res, 400, "Name cannot be empty");
+    }
+    if (defaultCurrency !== undefined && !CURRENCIES.includes(defaultCurrency)) {
+      return fail(res, 400, `Currency must be one of ${CURRENCIES.join(", ")}`);
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) return fail(res, 404, "User not found");
+
+    if (name !== undefined) user.name = name;
+    if (defaultCurrency !== undefined) user.defaultCurrency = defaultCurrency;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      data: { user: formatUser(user) },
+    });
+  } catch (error) {
+    console.error(error);
+    fail(res, 500, "Something went wrong. Please try again.");
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if ([currentPassword, newPassword].some((v) => typeof v !== "string" || !v)) {
+      return fail(res, 400, "Current and new password are required");
+    }
+    if (newPassword.length < 6) {
+      return fail(res, 400, "New password must be at least 6 characters");
+    }
+    if (newPassword === currentPassword) {
+      return fail(res, 400, "New password must be different from the current one");
+    }
+
+    const user = await User.findById(req.user._id).select("+password");
+    if (!user) return fail(res, 404, "User not found");
+
+    // 400 rather than 401 on purpose, so the app doesn't mistake a typo for an expired login
+    if (!(await user.matchPassword(currentPassword))) {
+      return fail(res, 400, "Current password is incorrect");
+    }
+
+    user.password = newPassword; // the pre-save hook scrambles it
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Password changed successfully",
+      data: null,
+    });
+  } catch (error) {
+    console.error(error);
+    fail(res, 500, "Something went wrong. Please try again.");
+  }
 };

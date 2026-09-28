@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import Layout from "../components/Layout";
+import { useAuth } from "../context/AuthContext";
 
 const emptyItem = { description: "", quantity: 1, unitPrice: 0 };
 const CURRENCIES = ["NGN", "USD", "EUR", "GBP"];
@@ -11,6 +12,7 @@ const inputClass =
 
 function InvoiceForm() {
   const navigate = useNavigate();
+    const { user } = useAuth();
 
   const [customers, setCustomers] = useState([]);
   const [customerId, setCustomerId] = useState("");
@@ -18,7 +20,7 @@ function InvoiceForm() {
   const [notes, setNotes] = useState("");
   const [poNumber, setPoNumber] = useState("");
   const [taxNumber, setTaxNumber] = useState("");
-  const [currency, setCurrency] = useState("NGN");
+  const [currency, setCurrency] = useState(user?.defaultCurrency || "NGN");
   const [subject, setSubject] = useState("");
   const [items, setItems] = useState([{ ...emptyItem }]);
   const [error, setError] = useState("");

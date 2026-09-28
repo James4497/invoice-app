@@ -1,17 +1,52 @@
-import { Link, useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 function Layout({ children }) {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const [search, setSearch] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close the profile menu when you click anywhere outside it
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  // Close the menu whenever the page changes
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const term = search.trim();
+    navigate(term ? `/invoices?search=${encodeURIComponent(term)}` : "/invoices");
+    setSearch("");
+  };
+
+  const initials =
+    user?.name
+      ?.split(" ")
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "?";
 
   const navLink = (to, label) => (
     <Link
       to={to}
-      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+      className={`text-sm font-semibold pb-1 border-b-2 transition-all duration-200 ${
         location.pathname.startsWith(to)
-          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm"
-          : "text-slate-600 hover:bg-slate-100"
+          ? "border-slate-900 text-slate-900"
+          : "border-transparent text-slate-800/80 hover:text-slate-900 hover:border-slate-900/40"
       }`}
     >
       {label}
@@ -19,30 +54,65 @@ function Layout({ children }) {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <nav className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-slate-200 px-6 py-3 flex justify-between items-center sticky top-0 z-10">
-        <div className="flex items-center gap-1">
-          <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mr-4">
-            Invoice App
-          </span>
-          {navLink("/dashboard", "Dashboard")}
-          {navLink("/customers", "Customers")}
-          {navLink("/invoices", "Invoices")}
+    <div className="min-h-screen bg-emerald-50">
+      <nav className="animate-slide-down bg-emerald-500 px-8 py-4 flex items-center justify-between gap-6 sticky top-0 z-20 shadow-sm">
+        <div className="flex items-center gap-10">
+          <span className="font-black text-2xl text-slate-900 tracking-tight">Invoice App</span>
+          <div className="hidden md:flex gap-7">
+            {navLink("/dashboard", "Home")}
+            {navLink("/customers", "Customers")}
+            {navLink("/invoices", "Invoices")}
+            {navLink("/report", "Report")}
+          </div>
         </div>
+
         <div className="flex items-center gap-4">
-          <span className="text-sm text-slate-600">
-            {user?.name}{" "}
-            <span className="text-slate-400">({user?.role})</span>
-          </span>
-          <button
-            onClick={logout}
-            className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-lg transition-colors duration-200"
-          >
-            Log out
-          </button>
+          <form onSubmit={handleSearch} className="hidden sm:block">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search invoice number"
+              className="w-52 focus:w-72 transition-all duration-300 bg-emerald-200/70 placeholder-emerald-900/60 text-slate-900 text-sm rounded-lg px-4 py-2 outline-none focus:bg-white focus:ring-2 focus:ring-slate-900/20"
+            />
+          </form>
+
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setMenuOpen((open) => !open)}
+              className="w-10 h-10 rounded-full bg-slate-900 text-white font-bold text-sm transition-transform duration-200 hover:scale-105 active:scale-95"
+              aria-label="Open profile menu"
+            >
+              {initials}
+            </button>
+
+            {menuOpen && (
+              <div className="animate-scale-in origin-top-right absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-slate-100 p-2">
+                <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                  <p className="text-sm font-bold text-slate-900 truncate">{user?.name}</p>
+                  <p className="text-xs text-slate-500 capitalize">{user?.role}</p>
+                </div>
+                <Link
+                  to="/settings"
+                  className="block text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg px-3 py-2 transition-colors duration-150"
+                >
+                  Settings
+                </Link>
+                <button
+                  onClick={logout}
+                  className="w-full text-left text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg px-3 py-2 transition-colors duration-150"
+                >
+                  Log out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
-      <main className="p-6 max-w-6xl mx-auto">{children}</main>
+
+      <main key={location.pathname} className="animate-fade-in-up p-8 max-w-6xl mx-auto">
+        {children}
+      </main>
     </div>
   );
 }

@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true, minlength: 6, select: false },
     role: { type: String, enum: ["admin", "staff"], default: "staff" },
+    defaultCurrency: { type: String, enum: ["NGN", "USD", "EUR", "GBP"], default: "NGN" },
   },
   { timestamps: true }
 );

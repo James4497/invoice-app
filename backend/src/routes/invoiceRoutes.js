@@ -7,6 +7,7 @@ const {
   addPayment,
   deleteInvoice,
   getSummary,
+  getReport,
 } = require("../controllers/invoiceController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
@@ -20,6 +21,7 @@ router.route("/").post(createInvoice).get(getInvoices);
 router.post("/:id/payments", addPayment);
 
 router.get("/summary", getSummary);
+router.get("/report", getReport);
 
 router
   .route("/:id")

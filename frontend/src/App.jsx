@@ -9,6 +9,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import InvoiceForm from "./pages/InvoiceForm";
 import InvoiceDetail from "./pages/InvoiceDetail";
 import InvoiceEdit from "./pages/InvoiceEdit";
+import Report from "./pages/Report";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -77,6 +79,22 @@ element={
   <InvoiceEdit />
   </ProtectedRoute>
 } />
+      <Route
+        path="/report"
+        element={
+          <ProtectedRoute>
+            <Report />
+          </ProtectedRoute>
+        }
+      />
+            <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<Navigate to="/dashboard" />} />
     </Routes>
   );

@@ -335,3 +335,111 @@ exports.getSummary = async (req, res) => {
     serverError(res, error);
   }
 };
+exports.getReport = async (req, res) => {
+  try {
+    const now = new Date();
+
+    // Old invoices were saved before the currency field existed, so treat "no currency" as NGN
+    const currencyOf = { $ifNull: ["$currency", "NGN"] };
+
+    const [byCurrency, topCustomers, overdue] = await Promise.all([
+      // Money and invoice counts, split by currency and status
+      Invoice.aggregate([
+        {
+          $group: {
+            _id: { currency: currencyOf, status: "$status" },
+            count: { $sum: 1 },
+            total: { $sum: "$total" },
+            amountPaid: { $sum: "$amountPaid" },
+          },
+        },
+      ]),
+
+      // Five biggest customers by amount invoiced
+      Invoice.aggregate([
+        {
+          $group: {
+            _id: { customer: "$customer", currency: currencyOf },
+            invoices: { $sum: 1 },
+            total: { $sum: "$total" },
+            amountPaid: { $sum: "$amountPaid" },
+          },
+        },
+        { $sort: { total: -1 } },
+        { $limit: 5 },
+        {
+          $lookup: {
+            from: Customer.collection.name,
+            localField: "_id.customer",
+            foreignField: "_id",
+            as: "customer",
+          },
+        },
+        { $unwind: "$customer" },
+        {
+          $project: {
+            _id: 0,
+            customerId: "$customer._id",
+            name: "$customer.name",
+            currency: "$_id.currency",
+            invoices: 1,
+            total: 1,
+            amountPaid: 1,
+            outstanding: { $subtract: ["$total", "$amountPaid"] },
+          },
+        },
+      ]),
+
+      // Unpaid invoices that are past their due date
+      Invoice.find({ status: { $ne: "paid" }, dueDate: { $lt: now } })
+        .populate("customer", "name")
+        .sort({ dueDate: 1 })
+        .limit(10),
+    ]);
+
+    // Group the totals by currency so naira and dollars never get added together
+    const currencies = {};
+    byCurrency.forEach(({ _id, count, total, amountPaid }) => {
+      const cur = _id.currency;
+      if (!currencies[cur]) {
+        currencies[cur] = {
+          currency: cur,
+          invoiced: 0,
+          collected: 0,
+          outstanding: 0,
+          byStatus: { unpaid: 0, "part-paid": 0, paid: 0 },
+        };
+      }
+      const row = currencies[cur];
+      row.invoiced += total;
+      row.collected += amountPaid;
+      row.outstanding += total - amountPaid;
+      row.byStatus[_id.status] += count;
+    });
+
+    const totals = Object.values(currencies).map((c) => ({
+      ...c,
+      invoiced: round2(c.invoiced),
+      collected: round2(c.collected),
+      outstanding: round2(c.outstanding),
+    }));
+
+    const overdueInvoices = overdue.map((inv) => ({
+      _id: inv._id,
+      invoiceNumber: inv.invoiceNumber,
+      customer: inv.customer?.name || "—",
+      currency: inv.currency || "NGN",
+      balance: inv.balance,
+      dueDate: inv.dueDate,
+      daysOverdue: Math.floor((now - inv.dueDate) / 86400000),
+    }));
+
+    res.json({
+      success: true,
+      message: "Report fetched successfully",
+      data: { totals, topCustomers, overdue: overdueInvoices },
+    });
+  } catch (error) {
+    serverError(res, error);
+  }
+};

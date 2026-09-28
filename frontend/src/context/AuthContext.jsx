@@ -25,6 +25,13 @@ export function AuthProvider({ children }) {
     setUser(user);
   };
 
+  // Used by the Settings page to refresh the saved user after an update
+  const updateUser = (updates) => {
+    const merged = { ...user, ...updates };
+    localStorage.setItem("user", JSON.stringify(merged));
+    setUser(merged);
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -32,7 +39,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, updateUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

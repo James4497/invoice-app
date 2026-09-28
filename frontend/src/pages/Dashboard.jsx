@@ -13,15 +13,26 @@ const tones = {
   yellow: { box: "bg-yellow-50 border-yellow-100", label: "text-yellow-600", value: "text-yellow-700" },
 };
 
-function StatCard({ label, value, tone = "slate", index = 0 }) {
+function StatCard({ label, value, tone = "slate", index = 0, to }) {
   const t = tones[tone];
-  return (
-    <div
-      className={`animate-fade-in-up hover-lift rounded-2xl border p-5 shadow-sm hover:shadow-lg ${t.box}`}
-      style={{ animationDelay: `${index * 0.07}s` }}
-    >
+  const content = (
+    <>
       <p className={`text-xs font-semibold uppercase tracking-wider ${t.label}`}>{label}</p>
       <p className={`text-2xl font-black mt-2 ${t.value}`}>{value}</p>
+    </>
+  );
+  const className = `animate-fade-in-up hover-lift rounded-2xl border p-5 shadow-sm hover:shadow-lg block ${t.box} ${
+    to ? "cursor-pointer" : ""
+  }`;
+  const style = { animationDelay: `${index * 0.07}s` };
+
+  return to ? (
+    <Link to={to} className={className} style={style}>
+      {content}
+    </Link>
+  ) : (
+    <div className={className} style={style}>
+      {content}
     </div>
   );
 }
@@ -66,20 +77,35 @@ function Dashboard() {
       {summary && report && (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-10">
-            <StatCard label="Customers" value={summary.totalCustomers} index={0} />
-            <StatCard label="Unpaid" value={summary.invoicesByStatus.unpaid} tone="red" index={1} />
+            <StatCard label="Customers" value={summary.totalCustomers} index={0} to="/customers" />
+            <StatCard
+              label="Unpaid"
+              value={summary.invoicesByStatus.unpaid}
+              tone="red"
+              index={1}
+              to="/invoices?status=unpaid"
+            />
             <StatCard
               label="Part-paid"
               value={summary.invoicesByStatus["part-paid"]}
               tone="yellow"
               index={2}
+              to="/invoices?status=part-paid"
             />
-            <StatCard label="Paid" value={summary.invoicesByStatus.paid} tone="green" index={3} />
+            <StatCard
+              label="Paid"
+              value={summary.invoicesByStatus.paid}
+              tone="green"
+              index={3}
+              to="/invoices?status=paid"
+            />
           </div>
 
           {report.totals.length === 0 && (
             <div className="animate-fade-in-up bg-white rounded-2xl border border-slate-100 p-8 text-center">
-              <p className="text-slate-500 mb-4">No invoices yet. Create your first one to see your numbers here.</p>
+              <p className="text-slate-500 mb-4">
+                No invoices yet. Create your first one to see your numbers here.
+              </p>
               <Link
                 to="/invoices/new"
                 className="inline-block bg-emerald-500 text-slate-900 font-bold px-6 py-2.5 rounded-xl hover:bg-emerald-400 transition-all duration-200 hover:scale-105 active:scale-95"
@@ -97,18 +123,21 @@ function Dashboard() {
                   label="Invoiced"
                   value={formatMoney(t.invoiced, t.currency)}
                   index={4 + ci * 3}
+                  to="/report"
                 />
                 <StatCard
                   label="Collected"
                   value={formatMoney(t.collected, t.currency)}
                   tone="green"
                   index={5 + ci * 3}
+                  to="/report"
                 />
                 <StatCard
                   label="Outstanding"
                   value={formatMoney(t.outstanding, t.currency)}
                   tone="red"
                   index={6 + ci * 3}
+                  to="/report"
                 />
               </div>
             </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
 import Layout from "../components/Layout";
+import BackButton from "../components/BackButton";
 
 const CURRENCIES = ["NGN", "USD", "EUR", "GBP"];
 const emptyItem = { description: "", quantity: 1, unitPrice: 0 };
@@ -122,6 +123,7 @@ function InvoiceEdit() {
   if (!invoiceNumber) {
     return (
       <Layout>
+        <BackButton to="/invoices" label="Back to Invoices" />
         <p className="text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
           {error || "Invoice not found"}
         </p>
@@ -131,6 +133,8 @@ function InvoiceEdit() {
 
   return (
     <Layout>
+      <BackButton to={`/invoices/${id}`} label="Back to invoice" />
+
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden max-w-4xl animate-fade-in-up">
         <div className="flex justify-between items-center px-8 pt-8 pb-5 border-b-2 border-emerald-500">
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../api/axios";
 import Layout from "../components/Layout";
+import BackButton from "../components/BackButton";
 import { useAuth } from "../context/AuthContext";
 
 const statusStyles = {
@@ -97,6 +98,8 @@ function InvoiceDetail() {
 
   return (
     <Layout>
+      <BackButton to="/invoices" label="Back to Invoices" />
+
       <div className="flex justify-between items-start mb-6 pb-4 border-b-2 border-emerald-500">
         <div>
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">

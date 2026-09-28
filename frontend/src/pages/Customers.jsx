@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 function Customers() {
   const { user } = useAuth();
   const [customers, setCustomers] = useState([]);
+  const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -15,7 +16,10 @@ function Customers() {
     setLoading(true);
     api
       .get("/customers", { params: searchTerm ? { search: searchTerm } : {} })
-      .then((res) => setCustomers(res.data.data.customers))
+      .then((res) => {
+        setCustomers(res.data.data.customers);
+        setTotal(res.data.data.customers.length);
+      })
       .catch((err) => setError(err.response?.data?.message || "Failed to load customers"))
       .finally(() => setLoading(false));
   };
@@ -53,13 +57,20 @@ function Customers() {
         </Link>
       </div>
 
+      <div className="animate-fade-in-up hover-lift bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-5 max-w-xs">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+          Total customers
+        </p>
+        <p className="text-2xl font-black text-slate-900 mt-1">{total}</p>
+      </div>
+
       <form onSubmit={handleSearch} className="mb-5 flex gap-2">
         <input
           type="text"
           placeholder="Search by name, email or phone..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border border-slate-300 rounded-lg px-4 py-2.5 flex-1 max-w-sm bg-white outline-none transition-all focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          className="border border-slate-300 rounded-lg px-4 py-2.5 flex-1 max-w-sm text-sm font-medium text-slate-800 bg-white outline-none transition-all focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
         />
         <button
           type="submit"
@@ -87,13 +98,14 @@ function Customers() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {loading && (
-              <tr>
-                <td colSpan={5} className="px-5 py-8 text-center text-slate-400">
-                  Loading...
-                </td>
-              </tr>
-            )}
+            {loading &&
+              [0, 1, 2].map((i) => (
+                <tr key={i}>
+                  <td colSpan={5} className="px-5 py-3.5">
+                    <div className="h-5 rounded-lg animate-shimmer" />
+                  </td>
+                </tr>
+              ))}
             {!loading && customers.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-5 py-8 text-center text-slate-400">

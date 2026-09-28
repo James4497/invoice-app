@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
 import Layout from "../components/Layout";
+import BackButton from "../components/BackButton";
 
 const inputClass =
   "w-full border border-slate-300 rounded-lg px-3 py-2 outline-none transition-all focus:ring-2 focus:ring-emerald-500 focus:border-transparent";
@@ -57,6 +58,8 @@ function CustomerForm() {
 
   return (
     <Layout>
+      <BackButton to="/customers" label="Back to Customers" />
+
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden max-w-md animate-fade-in-up">
         <div className="px-8 pt-8 pb-5 border-b-2 border-emerald-500">
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">

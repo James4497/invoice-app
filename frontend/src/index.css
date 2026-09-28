@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @keyframes fadeInUp {
@@ -38,3 +39,25 @@
 .stagger-2 { animation-delay: 0.1s; }
 .stagger-3 { animation-delay: 0.15s; }
 .stagger-4 { animation-delay: 0.2s; }
+body {
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+}
+
+select {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #0f172a;
+  font-weight: 600;
+  padding: 8px;
+}
+
+select option:checked {
+  background-color: #10b981;
+  color: #ffffff;
+}

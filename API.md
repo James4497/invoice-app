@@ -118,6 +118,38 @@ Requires a token. Changes your own password.
 
 **Response** `200`, `data: null`
 
+### `GET /auth/users`
+**Admin only** — `403` for a staff account. Lists every account on the system (safe fields only — no password hashes).
+
+**Response** `200`
+```json
+{
+  "success": true,
+  "message": "Users fetched successfully",
+  "data": {
+    "users": [
+      { "_id": "651f...", "name": "Jane Doe", "email": "jane@example.com", "role": "staff", "defaultCurrency": "NGN", "createdAt": "2026-09-01T10:00:00.000Z" }
+    ]
+  }
+}
+```
+
+### `PUT /auth/users/:id/reset-password`
+**Admin only** — `403` for a staff account. Resets another user's password to a randomly generated temporary one, so an admin can hand it to a user who's forgotten theirs. No body required.
+
+- Fails with `400` if you try to reset your own account this way — use `/auth/password` instead
+- `404` if the user doesn't exist
+
+**Response** `200`
+```json
+{
+  "success": true,
+  "message": "Password reset successfully",
+  "data": { "tempPassword": "aB3dK9pL" }
+}
+```
+The temporary password is only ever returned in this one response — it is hashed before saving and not retrievable afterward. The admin is responsible for sharing it with the user directly.
+
 ---
 
 ## Customers
@@ -195,7 +227,9 @@ Creates an invoice. `invoiceNumber` is generated automatically (`INV-0001`, `INV
 - `currency` must be one of `NGN`, `USD`, `EUR`, `GBP` (defaults to `NGN`)
 - `total` is calculated automatically from the items — never sent by the client
 
-**Response** `201` — returns the created `invoice`, with `customer` populated (`name`, `email`, `phone`) and a computed `balance` field (`total - amountPaid`).
+**Response** `201` — returns the created `invoice`, with `customer` populated (`name`, `email`, `phone`), `createdBy` populated (`name`), and a computed `balance` field (`total - amountPaid`).
+
+**Audit trail:** every invoice records `createdBy` (set once, at creation) and `lastEditedBy` / `lastEditedAt` (updated on every `PUT /invoices/:id` and every `POST /invoices/:id/payments`). This makes it possible to see who created an invoice and who most recently changed it, even though any staff member is allowed to edit any invoice.
 
 ### `GET /invoices`
 Lists invoices, newest first.
@@ -226,6 +260,7 @@ Updates an invoice. Any of `items`, `dueDate`, `notes`, `poNumber`, `taxNumber`,
 
 - Fails with `409` if the invoice's status is already `paid`
 - If `items` is included, the new total can't be less than the amount already paid (`400` if it would be)
+- `lastEditedBy` and `lastEditedAt` are set automatically to the logged-in user and the current time — this cannot be overridden by the request body
 
 ### `POST /invoices/:id/payments`
 Records a payment against an invoice.
@@ -238,7 +273,7 @@ Records a payment against an invoice.
 - Fails with `409` if the invoice is already fully paid
 - Fails with `400` if the amount is more than the outstanding balance
 
-**Response** `200` — returns the updated `invoice`. `status` is recalculated automatically: `unpaid` → `part-paid` → `paid` as payments come in.
+**Response** `200` — returns the updated `invoice`. `status` is recalculated automatically: `unpaid` → `part-paid` → `paid` as payments come in. `lastEditedBy` and `lastEditedAt` are also updated, same as `PUT /invoices/:id`.
 
 ### `DELETE /invoices/:id`
 **Admin only** — `403` for a staff account.
@@ -297,5 +332,7 @@ Fuller reporting: totals split by currency, top 5 customers by amount invoiced, 
 | Delete an invoice | ❌ | ✅ |
 | View Report and Dashboard | ✅ | ✅ |
 | Change own profile/password | ✅ | ✅ |
+| View all users (`GET /auth/users`) | ❌ | ✅ |
+| Reset another user's password | ❌ | ✅ |
 
-The first account ever created on a fresh database automatically becomes `admin`. There is no endpoint to promote another account — that's done directly in the database.
+The first account ever created on a fresh database automatically becomes `admin`. There is no endpoint to *promote* another account to admin — that's done directly in the database. An admin *can*, however, reset any other user's password via `PUT /auth/users/:id/reset-password`.

@@ -23,6 +23,19 @@ Each endpoint was tested directly in Postman with a valid auth token (obtained f
 
 ---
 
+## User management (admin-only password reset)
+
+| # | Test | Expected result | Result |
+|---|---|---|---|
+| 1 | List users (`GET /auth/users`) as **admin** | `200`, full list returned with safe fields only (no password hashes) | ✅ Pass |
+| 2 | List users as a **staff** account | `403`, blocked | ✅ Pass |
+| 3 | Reset another user's password as **admin** | `200`, returns a temporary password | ✅ Pass |
+| 4 | Log in as that user using the returned temporary password | `200`, login succeeds | ✅ Pass |
+| 5 | Try to reset your **own** password via this endpoint | `400`: `"Use the Settings page to change your own password"` | ✅ Pass |
+| 6 | Reset a password as a **staff** account | `403`, blocked | ✅ Pass |
+
+---
+
 ## Customers
 
 | # | Test | Expected result | Result |
@@ -54,6 +67,9 @@ Each endpoint was tested directly in Postman with a valid auth token (obtained f
 | 10 | Record a payment larger than the remaining balance | `400`, names the actual outstanding balance in the message | ✅ Pass |
 | 11 | Delete an invoice as a **staff** account | `403`, blocked | ✅ Pass |
 | 12 | Delete an invoice as **admin** | `200`, `"Invoice deleted successfully"` | ✅ Pass |
+| 13 | Create an invoice, then check `createdBy` on the response | Shows the creating user's name | ✅ Pass |
+| 14 | Edit an invoice (or record a payment) while logged in as **User A** | `lastEditedBy` and `lastEditedAt` are set to User A and the current time | ✅ Pass |
+| 15 | Log in as a **different user (User B)** and edit the same invoice | `lastEditedBy` correctly updates to User B, overwriting User A's name | ✅ Pass — confirmed this is what surfaces on the invoice detail page as "Last edited by" |
 
 ---
 

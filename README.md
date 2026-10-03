@@ -117,4 +117,4 @@ TS Academy Backend Development Capstone, Group 63.
 - Egbo James — built and documented this project
 - Richard Agafie — built and documented this project
 - Victor Akinyemi — built and documented this project
-- Eazy — built and documented this project
+- Israel Ayoola — built and documented this project

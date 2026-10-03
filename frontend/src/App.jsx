@@ -11,6 +11,7 @@ import InvoiceDetail from "./pages/InvoiceDetail";
 import InvoiceEdit from "./pages/InvoiceEdit";
 import Report from "./pages/Report";
 import Settings from "./pages/Settings";
+import Users from "./pages/Users";
 
 function App() {
   return (
@@ -58,27 +59,29 @@ function App() {
         }
       />
       <Route
-  path="/invoices/new"
-  element={
-    <ProtectedRoute>
-      <InvoiceForm />
-    </ProtectedRoute>
-  }
-/>
-<Route
-  path="/invoices/:id"
-  element={
-    <ProtectedRoute>
-      <InvoiceDetail />
-    </ProtectedRoute>
-  }
-/>
-<Route path="/invoices/:id/edit" 
-element={
-<ProtectedRoute>
-  <InvoiceEdit />
-  </ProtectedRoute>
-} />
+        path="/invoices/new"
+        element={
+          <ProtectedRoute>
+            <InvoiceForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/invoices/:id"
+        element={
+          <ProtectedRoute>
+            <InvoiceDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/invoices/:id/edit"
+        element={
+          <ProtectedRoute>
+            <InvoiceEdit />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/report"
         element={
@@ -87,11 +90,19 @@ element={
           </ProtectedRoute>
         }
       />
-            <Route
+      <Route
         path="/settings"
         element={
           <ProtectedRoute>
             <Settings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute>
+            <Users />
           </ProtectedRoute>
         }
       />

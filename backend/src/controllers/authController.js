@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+const crypto = require("crypto");
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
 
@@ -148,6 +150,51 @@ exports.changePassword = async (req, res) => {
       success: true,
       message: "Password changed successfully",
       data: null,
+    });
+  } catch (error) {
+    console.error(error);
+    fail(res, 500, "Something went wrong. Please try again.");
+  }
+};
+
+exports.getUsers = async (req, res) => {
+  try {
+    const users = await User.find().select("name email role defaultCurrency createdAt").sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      message: "Users fetched successfully",
+      data: { users },
+    });
+  } catch (error) {
+    console.error(error);
+    fail(res, 500, "Something went wrong. Please try again.");
+  }
+};
+
+exports.resetUserPassword = async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return fail(res, 400, "Invalid user ID");
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) return fail(res, 404, "User not found");
+
+    if (String(user._id) === String(req.user._id)) {
+      return fail(res, 400, "Use the Settings page to change your own password");
+    }
+
+    // An 8-character temporary password, readable enough to pass along to the user
+    const tempPassword = crypto.randomBytes(6).toString("base64").replace(/[^a-zA-Z0-9]/g, "").slice(0, 8);
+
+    user.password = tempPassword; // the pre-save hook hashes it
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Password reset successfully",
+      data: { tempPassword },
     });
   } catch (error) {
     console.error(error);

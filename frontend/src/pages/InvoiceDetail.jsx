@@ -32,6 +32,9 @@ function InvoiceDetail() {
 
   const formatDate = (d) => (d ? new Date(d).toLocaleDateString() : "—");
 
+  const formatDateTime = (d) =>
+    d ? new Date(d).toLocaleString("en-NG", { dateStyle: "medium", timeStyle: "short" }) : "—";
+
   const loadInvoice = () => {
     setLoading(true);
     api
@@ -102,6 +105,13 @@ function InvoiceDetail() {
     { label: "PO number", value: invoice.poNumber || "—" },
     { label: "Tax number", value: invoice.taxNumber || "—" },
     { label: "Customer email", value: invoice.customer?.email || "—" },
+    { label: "Created by", value: invoice.createdBy?.name || "—" },
+    {
+      label: "Last edited by",
+      value: invoice.lastEditedBy
+        ? `${invoice.lastEditedBy.name} on ${formatDateTime(invoice.lastEditedAt)}`
+        : "—",
+    },
   ];
 
   return (

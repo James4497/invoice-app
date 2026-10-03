@@ -30,6 +30,8 @@ const invoiceSchema = new mongoose.Schema(
     dueDate: { type: Date },
     notes: { type: String, trim: true, default: "" },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    lastEditedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    lastEditedAt: { type: Date },
   },
   { timestamps: true, toJSON: { virtuals: true } }
 );

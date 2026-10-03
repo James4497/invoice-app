@@ -106,6 +106,7 @@ exports.createInvoice = async (req, res) => {
       createdBy: req.user._id,
     });
     await invoice.populate("customer", "name email phone");
+    await invoice.populate("createdBy", "name");
 
     res.status(201).json({
       success: true,
@@ -168,7 +169,10 @@ exports.getInvoice = async (req, res) => {
       return fail(res, 400, "Invalid invoice ID");
     }
 
-    const invoice = await Invoice.findById(req.params.id).populate("customer", "name email phone");
+    const invoice = await Invoice.findById(req.params.id)
+      .populate("customer", "name email phone")
+      .populate("lastEditedBy", "name")
+      .populate("createdBy", "name");
     if (!invoice) return fail(res, 404, "Invoice not found");
 
     res.json({
@@ -226,9 +230,12 @@ exports.updateInvoice = async (req, res) => {
     if (taxNumber !== undefined) invoice.taxNumber = taxNumber;
     if (currency !== undefined) invoice.currency = currency;
     if (subject !== undefined) invoice.subject = subject;
+    invoice.lastEditedBy = req.user._id;
 
     await invoice.save(); // total and status are recalculated automatically
     await invoice.populate("customer", "name email phone");
+    await invoice.populate("lastEditedBy", "name");
+    await invoice.populate("createdBy", "name");
 
     res.json({
       success: true,
@@ -263,8 +270,12 @@ exports.addPayment = async (req, res) => {
     }
 
     invoice.amountPaid = round2(invoice.amountPaid + payment);
+    invoice.lastEditedBy = req.user._id;
+    invoice.lastEditedAt = new Date();
     await invoice.save(); // status is recalculated automatically
     await invoice.populate("customer", "name email phone");
+    await invoice.populate("lastEditedBy", "name");
+    await invoice.populate("createdBy", "name");
 
     res.json({
       success: true,

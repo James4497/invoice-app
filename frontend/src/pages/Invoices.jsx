@@ -25,38 +25,49 @@ function Invoices() {
   const [searchParams, setSearchParams] = useSearchParams();
   const search = searchParams.get("search") || "";
   const status = searchParams.get("status") || "";
+  const page = parseInt(searchParams.get("page"), 10) || 1;
 
   const [invoices, setInvoices] = useState([]);
   const [counts, setCounts] = useState({ unpaid: 0, "part-paid": 0, paid: 0 });
+  const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const loadInvoices = (statusFilter, searchTerm) => {
+  const loadInvoices = (statusFilter, searchTerm, pageNum) => {
     setLoading(true);
     setError("");
-    const params = {};
+    const params = { page: pageNum };
     if (statusFilter) params.status = statusFilter;
     if (searchTerm) params.search = searchTerm;
 
     api
       .get("/invoices", { params })
       .then((res) => {
-        const list = res.data.data.invoices;
-        setInvoices(list);
-        setCounts({
-          unpaid: list.filter((i) => i.status === "unpaid").length,
-          "part-paid": list.filter((i) => i.status === "part-paid").length,
-          paid: list.filter((i) => i.status === "paid").length,
-        });
+        setInvoices(res.data.data.invoices);
+        setPages(res.data.data.pagination.pages);
+        setTotal(res.data.data.pagination.total);
       })
       .catch((err) => setError(err.response?.data?.message || "Failed to load invoices"))
       .finally(() => setLoading(false));
   };
 
-  // Reload whenever the status or search term in the address bar changes
+  const loadCounts = () => {
+    api
+      .get("/invoices/summary")
+      .then((res) => setCounts(res.data.data.invoicesByStatus))
+      .catch(() => {
+        /* non-critical — the cards just won't update if this fails */
+      });
+  };
+
   useEffect(() => {
-    loadInvoices(status, search);
-  }, [status, search]);
+    loadInvoices(status, search, page);
+  }, [status, search, page]);
+
+  useEffect(() => {
+    loadCounts();
+  }, []);
 
   const handleFilterChange = (e) => {
     const value = e.target.value;
@@ -72,10 +83,19 @@ function Invoices() {
     setSearchParams(next);
   };
 
+  const goToPage = (p) => {
+    if (p < 1 || p > pages) return;
+    const next = {};
+    if (status) next.status = status;
+    if (search) next.search = search;
+    if (p > 1) next.page = p;
+    setSearchParams(next);
+  };
+
   const formatMoney = (n, currency = "NGN") =>
     new Intl.NumberFormat("en-NG", { style: "currency", currency }).format(Number(n));
 
-  const thClass = "px-5 py-3.5 font-semibold text-xs uppercase tracking-wider";
+  const thClass = "px-5 py-3.5 font-semibold text-xs uppercase tracking-wider whitespace-nowrap";
 
   return (
     <Layout>
@@ -136,65 +156,91 @@ function Invoices() {
       )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
-            <tr>
-              <th className={thClass}>Invoice #</th>
-              <th className={thClass}>Customer</th>
-              <th className={thClass}>Total</th>
-              <th className={thClass}>Balance</th>
-              <th className={thClass}>Status</th>
-              <th className="px-5 py-3.5"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {loading &&
-              [0, 1, 2].map((i) => (
-                <tr key={i}>
-                  <td colSpan={6} className="px-5 py-3.5">
-                    <div className="h-5 rounded-lg animate-shimmer" />
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm min-w-[640px]">
+            <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
+              <tr>
+                <th className={thClass}>Invoice #</th>
+                <th className={thClass}>Customer</th>
+                <th className={thClass}>Total</th>
+                <th className={thClass}>Balance</th>
+                <th className={thClass}>Status</th>
+                <th className="px-5 py-3.5"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {loading &&
+                [0, 1, 2].map((i) => (
+                  <tr key={i}>
+                    <td colSpan={6} className="px-5 py-3.5">
+                      <div className="h-5 rounded-lg animate-shimmer" />
+                    </td>
+                  </tr>
+                ))}
+              {!loading && invoices.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-5 py-8 text-center text-slate-400">
+                    {search ? `No invoices match "${search}".` : "No invoices found."}
+                  </td>
+                </tr>
+              )}
+              {invoices.map((inv, i) => (
+                <tr
+                  key={inv._id}
+                  className="animate-fade-in hover:bg-emerald-50/50 transition-colors duration-150"
+                  style={{ animationDelay: `${i * 0.04}s` }}
+                >
+                  <td className="px-5 py-3.5 font-medium whitespace-nowrap">
+                    <Link
+                      to={`/invoices/${inv._id}`}
+                      className="text-blue-600 hover:text-blue-700 hover:underline"
+                    >
+                      {inv.invoiceNumber}
+                    </Link>
+                  </td>
+                  <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">{inv.customer?.name || "—"}</td>
+                  <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">{formatMoney(inv.total, inv.currency)}</td>
+                  <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">{formatMoney(inv.balance, inv.currency)}</td>
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <StatusBadge status={inv.status} />
+                  </td>
+                  <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                    <Link
+                      to={`/invoices/${inv._id}`}
+                      className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                    >
+                      View
+                    </Link>
                   </td>
                 </tr>
               ))}
-            {!loading && invoices.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-5 py-8 text-center text-slate-400">
-                  {search ? `No invoices match "${search}".` : "No invoices found."}
-                </td>
-              </tr>
-            )}
-            {invoices.map((inv, i) => (
-              <tr
-                key={inv._id}
-                className="animate-fade-in hover:bg-emerald-50/50 transition-colors duration-150"
-                style={{ animationDelay: `${i * 0.04}s` }}
+            </tbody>
+          </table>
+        </div>
+
+        {!loading && pages > 1 && (
+          <div className="flex items-center justify-between px-5 py-4 border-t border-slate-100">
+            <p className="text-sm text-slate-500">
+              Page {page} of {pages} · {total} total
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => goToPage(page - 1)}
+                disabled={page <= 1}
+                className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                <td className="px-5 py-3.5 font-medium">
-                  <Link
-                    to={`/invoices/${inv._id}`}
-                    className="text-blue-600 hover:text-blue-700 hover:underline"
-                  >
-                    {inv.invoiceNumber}
-                  </Link>
-                </td>
-                <td className="px-5 py-3.5 text-slate-600">{inv.customer?.name || "—"}</td>
-                <td className="px-5 py-3.5 text-slate-600">{formatMoney(inv.total, inv.currency)}</td>
-                <td className="px-5 py-3.5 text-slate-600">{formatMoney(inv.balance, inv.currency)}</td>
-                <td className="px-5 py-3.5">
-                  <StatusBadge status={inv.status} />
-                </td>
-                <td className="px-5 py-3.5 text-right">
-                  <Link
-                    to={`/invoices/${inv._id}`}
-                    className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
-                  >
-                    View
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                Previous
+              </button>
+              <button
+                onClick={() => goToPage(page + 1)}
+                disabled={page >= pages}
+                className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

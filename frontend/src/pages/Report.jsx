@@ -43,7 +43,7 @@ function Report() {
       .finally(() => setLoading(false));
   }, []);
 
-  const thClass = "px-5 py-3.5 font-semibold text-xs uppercase tracking-wider";
+  const thClass = "px-5 py-3.5 font-semibold text-xs uppercase tracking-wider whitespace-nowrap";
 
   return (
     <Layout>
@@ -130,42 +130,44 @@ function Report() {
               <h3 className="text-lg font-black text-slate-900">Top customers</h3>
               <p className="text-sm text-slate-500">Ranked by total amount invoiced</p>
             </div>
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-500 border-y border-slate-100">
-                <tr>
-                  <th className={thClass}>Customer</th>
-                  <th className={thClass}>Invoices</th>
-                  <th className={thClass}>Invoiced</th>
-                  <th className={thClass}>Paid</th>
-                  <th className={thClass}>Outstanding</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {report.topCustomers.length === 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm min-w-[600px]">
+                <thead className="bg-slate-50 text-slate-500 border-y border-slate-100">
                   <tr>
-                    <td colSpan={5} className="px-5 py-8 text-center text-slate-400">
-                      No customers to show yet.
-                    </td>
+                    <th className={thClass}>Customer</th>
+                    <th className={thClass}>Invoices</th>
+                    <th className={thClass}>Invoiced</th>
+                    <th className={thClass}>Paid</th>
+                    <th className={thClass}>Outstanding</th>
                   </tr>
-                )}
-                {report.topCustomers.map((c) => (
-                  <tr
-                    key={`${c.customerId}-${c.currency}`}
-                    className="hover:bg-emerald-50/50 transition-colors duration-150"
-                  >
-                    <td className="px-5 py-3.5 font-medium text-slate-800">{c.name}</td>
-                    <td className="px-5 py-3.5 text-slate-600">{c.invoices}</td>
-                    <td className="px-5 py-3.5 text-slate-600">{formatMoney(c.total, c.currency)}</td>
-                    <td className="px-5 py-3.5 text-emerald-600 font-medium">
-                      {formatMoney(c.amountPaid, c.currency)}
-                    </td>
-                    <td className="px-5 py-3.5 text-red-600 font-medium">
-                      {formatMoney(c.outstanding, c.currency)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {report.topCustomers.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-8 text-center text-slate-400">
+                        No customers to show yet.
+                      </td>
+                    </tr>
+                  )}
+                  {report.topCustomers.map((c) => (
+                    <tr
+                      key={`${c.customerId}-${c.currency}`}
+                      className="hover:bg-emerald-50/50 transition-colors duration-150"
+                    >
+                      <td className="px-5 py-3.5 font-medium text-slate-800 whitespace-nowrap">{c.name}</td>
+                      <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">{c.invoices}</td>
+                      <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">{formatMoney(c.total, c.currency)}</td>
+                      <td className="px-5 py-3.5 text-emerald-600 font-medium whitespace-nowrap">
+                        {formatMoney(c.amountPaid, c.currency)}
+                      </td>
+                      <td className="px-5 py-3.5 text-red-600 font-medium whitespace-nowrap">
+                        {formatMoney(c.outstanding, c.currency)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div className="animate-fade-in-up bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -173,50 +175,52 @@ function Report() {
               <h3 className="text-lg font-black text-slate-900">Overdue invoices</h3>
               <p className="text-sm text-slate-500">Unpaid and past their due date</p>
             </div>
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-500 border-y border-slate-100">
-                <tr>
-                  <th className={thClass}>Invoice #</th>
-                  <th className={thClass}>Customer</th>
-                  <th className={thClass}>Due date</th>
-                  <th className={thClass}>Late by</th>
-                  <th className={thClass}>Balance</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {report.overdue.length === 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm min-w-[600px]">
+                <thead className="bg-slate-50 text-slate-500 border-y border-slate-100">
                   <tr>
-                    <td colSpan={5} className="px-5 py-8 text-center text-slate-400">
-                      Nothing is overdue. Nice.
-                    </td>
+                    <th className={thClass}>Invoice #</th>
+                    <th className={thClass}>Customer</th>
+                    <th className={thClass}>Due date</th>
+                    <th className={thClass}>Late by</th>
+                    <th className={thClass}>Balance</th>
                   </tr>
-                )}
-                {report.overdue.map((inv) => (
-                  <tr key={inv._id} className="hover:bg-emerald-50/50 transition-colors duration-150">
-                    <td className="px-5 py-3.5 font-medium">
-                      <Link
-                        to={`/invoices/${inv._id}`}
-                        className="text-blue-600 hover:text-blue-700 hover:underline"
-                      >
-                        {inv.invoiceNumber}
-                      </Link>
-                    </td>
-                    <td className="px-5 py-3.5 text-slate-600">{inv.customer}</td>
-                    <td className="px-5 py-3.5 text-slate-600">
-                      {new Date(inv.dueDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                        {inv.daysOverdue} {inv.daysOverdue === 1 ? "day" : "days"}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-red-600 font-medium">
-                      {formatMoney(inv.balance, inv.currency)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {report.overdue.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-5 py-8 text-center text-slate-400">
+                        Nothing is overdue. Nice.
+                      </td>
+                    </tr>
+                  )}
+                  {report.overdue.map((inv) => (
+                    <tr key={inv._id} className="hover:bg-emerald-50/50 transition-colors duration-150">
+                      <td className="px-5 py-3.5 font-medium whitespace-nowrap">
+                        <Link
+                          to={`/invoices/${inv._id}`}
+                          className="text-blue-600 hover:text-blue-700 hover:underline"
+                        >
+                          {inv.invoiceNumber}
+                        </Link>
+                      </td>
+                      <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">{inv.customer}</td>
+                      <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">
+                        {new Date(inv.dueDate).toLocaleDateString()}
+                      </td>
+                      <td className="px-5 py-3.5 whitespace-nowrap">
+                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                          {inv.daysOverdue} {inv.daysOverdue === 1 ? "day" : "days"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-red-600 font-medium whitespace-nowrap">
+                        {formatMoney(inv.balance, inv.currency)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}

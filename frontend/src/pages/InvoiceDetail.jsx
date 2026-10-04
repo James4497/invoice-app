@@ -158,28 +158,30 @@ function InvoiceDetail() {
           ))}
         </div>
 
-        <table className="w-full text-left text-sm mb-4">
-          <thead className="text-slate-500 border-b border-slate-100">
-            <tr>
-              <th className="py-2.5 font-semibold text-xs uppercase tracking-wider">Description</th>
-              <th className="py-2.5 font-semibold text-xs uppercase tracking-wider">Qty</th>
-              <th className="py-2.5 font-semibold text-xs uppercase tracking-wider">Unit Price</th>
-              <th className="py-2.5 font-semibold text-xs uppercase tracking-wider text-right">Amount</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {invoice.items.map((item, i) => (
-              <tr key={i}>
-                <td className="py-2.5">{item.description}</td>
-                <td className="py-2.5">{item.quantity}</td>
-                <td className="py-2.5">{formatMoney(item.unitPrice, cur)}</td>
-                <td className="py-2.5 text-right">
-                  {formatMoney(item.quantity * item.unitPrice, cur)}
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm mb-4 min-w-[480px]">
+            <thead className="text-slate-500 border-b border-slate-100">
+              <tr>
+                <th className="py-2.5 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">Description</th>
+                <th className="py-2.5 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">Qty</th>
+                <th className="py-2.5 font-semibold text-xs uppercase tracking-wider whitespace-nowrap">Unit Price</th>
+                <th className="py-2.5 font-semibold text-xs uppercase tracking-wider text-right whitespace-nowrap">Amount</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {invoice.items.map((item, i) => (
+                <tr key={i}>
+                  <td className="py-2.5 whitespace-nowrap">{item.description}</td>
+                  <td className="py-2.5 whitespace-nowrap">{item.quantity}</td>
+                  <td className="py-2.5 whitespace-nowrap">{formatMoney(item.unitPrice, cur)}</td>
+                  <td className="py-2.5 text-right whitespace-nowrap">
+                    {formatMoney(item.quantity * item.unitPrice, cur)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         <div className="flex justify-end">
           <div className="w-64 text-sm bg-slate-50 rounded-xl p-4">

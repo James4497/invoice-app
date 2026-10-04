@@ -55,7 +55,7 @@ function Customers() {
     }
   };
 
-  const thClass = "px-5 py-3.5 font-semibold text-xs uppercase tracking-wider";
+  const thClass = "px-5 py-3.5 font-semibold text-xs uppercase tracking-wider whitespace-nowrap";
 
   return (
     <Layout>
@@ -99,62 +99,64 @@ function Customers() {
       )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
-            <tr>
-              <th className={thClass}>Name</th>
-              <th className={thClass}>Email</th>
-              <th className={thClass}>Phone</th>
-              <th className={thClass}>Address</th>
-              <th className="px-5 py-3.5"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {loading &&
-              [0, 1, 2].map((i) => (
-                <tr key={i}>
-                  <td colSpan={5} className="px-5 py-3.5">
-                    <div className="h-5 rounded-lg animate-shimmer" />
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm min-w-[640px]">
+            <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
+              <tr>
+                <th className={thClass}>Name</th>
+                <th className={thClass}>Email</th>
+                <th className={thClass}>Phone</th>
+                <th className={thClass}>Address</th>
+                <th className="px-5 py-3.5"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {loading &&
+                [0, 1, 2].map((i) => (
+                  <tr key={i}>
+                    <td colSpan={5} className="px-5 py-3.5">
+                      <div className="h-5 rounded-lg animate-shimmer" />
+                    </td>
+                  </tr>
+                ))}
+              {!loading && customers.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-5 py-8 text-center text-slate-400">
+                    No customers found.
+                  </td>
+                </tr>
+              )}
+              {customers.map((c, i) => (
+                <tr
+                  key={c._id}
+                  className="animate-fade-in hover:bg-emerald-50/50 transition-colors duration-150"
+                  style={{ animationDelay: `${Math.min(i, 10) * 0.04}s` }}
+                >
+                  <td className="px-5 py-3.5 font-medium text-slate-800 whitespace-nowrap">{c.name}</td>
+                  <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">{c.email || "—"}</td>
+                  <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">{c.phone || "—"}</td>
+                  <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">{c.address || "—"}</td>
+                  <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                    <Link
+                      to={`/customers/${c._id}/edit`}
+                      className="text-blue-600 hover:text-blue-700 font-medium hover:underline mr-4"
+                    >
+                      Edit
+                    </Link>
+                    {user?.role === "admin" && (
+                      <button
+                        onClick={() => handleDelete(c._id, c.name)}
+                        className="text-red-600 hover:text-red-700 font-medium hover:underline"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
-            {!loading && customers.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-5 py-8 text-center text-slate-400">
-                  No customers found.
-                </td>
-              </tr>
-            )}
-            {customers.map((c, i) => (
-              <tr
-                key={c._id}
-                className="animate-fade-in hover:bg-emerald-50/50 transition-colors duration-150"
-                style={{ animationDelay: `${Math.min(i, 10) * 0.04}s` }}
-              >
-                <td className="px-5 py-3.5 font-medium text-slate-800">{c.name}</td>
-                <td className="px-5 py-3.5 text-slate-600">{c.email || "—"}</td>
-                <td className="px-5 py-3.5 text-slate-600">{c.phone || "—"}</td>
-                <td className="px-5 py-3.5 text-slate-600">{c.address || "—"}</td>
-                <td className="px-5 py-3.5 text-right whitespace-nowrap">
-                  <Link
-                    to={`/customers/${c._id}/edit`}
-                    className="text-blue-600 hover:text-blue-700 font-medium hover:underline mr-4"
-                  >
-                    Edit
-                  </Link>
-                  {user?.role === "admin" && (
-                    <button
-                      onClick={() => handleDelete(c._id, c.name)}
-                      className="text-red-600 hover:text-red-700 font-medium hover:underline"
-                    >
-                      Delete
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
 
         {!loading && pages > 1 && (
           <div className="flex items-center justify-between px-5 py-4 border-t border-slate-100">

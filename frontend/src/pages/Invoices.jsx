@@ -52,8 +52,6 @@ function Invoices() {
       .finally(() => setLoading(false));
   };
 
-  // True counts across ALL invoices, independent of filters or pagination —
-  // same endpoint the Dashboard uses, loaded once on mount
   const loadCounts = () => {
     api
       .get("/invoices/summary")
@@ -63,12 +61,10 @@ function Invoices() {
       });
   };
 
-  // Reload the list whenever the status, search term, or page in the address bar changes
   useEffect(() => {
     loadInvoices(status, search, page);
   }, [status, search, page]);
 
-  // Load the true counts once, on mount
   useEffect(() => {
     loadCounts();
   }, []);
@@ -78,7 +74,6 @@ function Invoices() {
     const next = {};
     if (value) next.status = value;
     if (search) next.search = search;
-    // any new filter starts back at page 1 — no "page" key added
     setSearchParams(next);
   };
 
@@ -100,7 +95,7 @@ function Invoices() {
   const formatMoney = (n, currency = "NGN") =>
     new Intl.NumberFormat("en-NG", { style: "currency", currency }).format(Number(n));
 
-  const thClass = "px-5 py-3.5 font-semibold text-xs uppercase tracking-wider";
+  const thClass = "px-5 py-3.5 font-semibold text-xs uppercase tracking-wider whitespace-nowrap";
 
   return (
     <Layout>
@@ -161,65 +156,67 @@ function Invoices() {
       )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
-            <tr>
-              <th className={thClass}>Invoice #</th>
-              <th className={thClass}>Customer</th>
-              <th className={thClass}>Total</th>
-              <th className={thClass}>Balance</th>
-              <th className={thClass}>Status</th>
-              <th className="px-5 py-3.5"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {loading &&
-              [0, 1, 2].map((i) => (
-                <tr key={i}>
-                  <td colSpan={6} className="px-5 py-3.5">
-                    <div className="h-5 rounded-lg animate-shimmer" />
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm min-w-[640px]">
+            <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
+              <tr>
+                <th className={thClass}>Invoice #</th>
+                <th className={thClass}>Customer</th>
+                <th className={thClass}>Total</th>
+                <th className={thClass}>Balance</th>
+                <th className={thClass}>Status</th>
+                <th className="px-5 py-3.5"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {loading &&
+                [0, 1, 2].map((i) => (
+                  <tr key={i}>
+                    <td colSpan={6} className="px-5 py-3.5">
+                      <div className="h-5 rounded-lg animate-shimmer" />
+                    </td>
+                  </tr>
+                ))}
+              {!loading && invoices.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-5 py-8 text-center text-slate-400">
+                    {search ? `No invoices match "${search}".` : "No invoices found."}
+                  </td>
+                </tr>
+              )}
+              {invoices.map((inv, i) => (
+                <tr
+                  key={inv._id}
+                  className="animate-fade-in hover:bg-emerald-50/50 transition-colors duration-150"
+                  style={{ animationDelay: `${i * 0.04}s` }}
+                >
+                  <td className="px-5 py-3.5 font-medium whitespace-nowrap">
+                    <Link
+                      to={`/invoices/${inv._id}`}
+                      className="text-blue-600 hover:text-blue-700 hover:underline"
+                    >
+                      {inv.invoiceNumber}
+                    </Link>
+                  </td>
+                  <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">{inv.customer?.name || "—"}</td>
+                  <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">{formatMoney(inv.total, inv.currency)}</td>
+                  <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">{formatMoney(inv.balance, inv.currency)}</td>
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <StatusBadge status={inv.status} />
+                  </td>
+                  <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                    <Link
+                      to={`/invoices/${inv._id}`}
+                      className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                    >
+                      View
+                    </Link>
                   </td>
                 </tr>
               ))}
-            {!loading && invoices.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-5 py-8 text-center text-slate-400">
-                  {search ? `No invoices match "${search}".` : "No invoices found."}
-                </td>
-              </tr>
-            )}
-            {invoices.map((inv, i) => (
-              <tr
-                key={inv._id}
-                className="animate-fade-in hover:bg-emerald-50/50 transition-colors duration-150"
-                style={{ animationDelay: `${i * 0.04}s` }}
-              >
-                <td className="px-5 py-3.5 font-medium">
-                  <Link
-                    to={`/invoices/${inv._id}`}
-                    className="text-blue-600 hover:text-blue-700 hover:underline"
-                  >
-                    {inv.invoiceNumber}
-                  </Link>
-                </td>
-                <td className="px-5 py-3.5 text-slate-600">{inv.customer?.name || "—"}</td>
-                <td className="px-5 py-3.5 text-slate-600">{formatMoney(inv.total, inv.currency)}</td>
-                <td className="px-5 py-3.5 text-slate-600">{formatMoney(inv.balance, inv.currency)}</td>
-                <td className="px-5 py-3.5">
-                  <StatusBadge status={inv.status} />
-                </td>
-                <td className="px-5 py-3.5 text-right">
-                  <Link
-                    to={`/invoices/${inv._id}`}
-                    className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
-                  >
-                    View
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
 
         {!loading && pages > 1 && (
           <div className="flex items-center justify-between px-5 py-4 border-t border-slate-100">

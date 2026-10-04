@@ -93,6 +93,19 @@ Each endpoint was tested directly in Postman with a valid auth token (obtained f
 
 ---
 
+## Security
+
+| # | Test | Expected result | Result |
+|---|---|---|---|
+| 1 | Make a normal login request | Succeeds as usual — `helmet` and CORS do not interfere with legitimate requests | ✅ Pass |
+| 2 | Log in with a wrong password repeatedly (11+ times) from the same IP within 15 minutes | After 10 attempts, further attempts are blocked: `"Too many attempts. Please try again in a few minutes."` | ✅ Pass |
+| 3 | Load the deployed frontend and confirm it can still reach the API | Succeeds — the deployed Vercel URL is on the CORS allow-list | ✅ Pass |
+| 4 | Inspect response headers from the API (e.g. via browser dev tools or Postman) | Security headers set by `helmet` are present (e.g. `X-Content-Type-Options`, `X-Frame-Options`) | ✅ Confirmed by code review — `helmet()` is applied globally in `app.js` before any routes |
+
+**Note:** registration is rate-limited by the same rule as login (10 attempts per 15 minutes per IP), but this was not separately re-tested with 11 real registrations, since each one requires a unique email address. The underlying `express-rate-limit` configuration is shared code applied to both routes, so the login test above is considered sufficient evidence it works for both.
+
+---
+
 ## Frontend testing
 
 Alongside the API tests above, the full user flow was tested manually in the browser on both `localhost` and the deployed Vercel/Render environment:
@@ -104,3 +117,5 @@ Alongside the API tests above, the full user flow was tested manually in the bro
 - Viewing the Dashboard and Report pages, and confirming the numbers match the underlying invoice data
 - Updating profile details and changing password via Settings
 - Confirming admin-only actions (Delete buttons) are hidden from staff accounts in the UI, not just blocked by the API
+- Paginating through Customers and Invoices once enough records existed to span multiple pages
+- Confirming the mobile navigation menu and horizontally-scrollable tables work correctly on a phone screen

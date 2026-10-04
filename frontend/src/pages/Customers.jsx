@@ -8,17 +8,24 @@ function Customers() {
   const { user } = useAuth();
   const [customers, setCustomers] = useState([]);
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const loadCustomers = (searchTerm = "") => {
+  const loadCustomers = (searchTerm = "", pageNum = 1) => {
     setLoading(true);
+    const params = { page: pageNum };
+    if (searchTerm) params.search = searchTerm;
+
     api
-      .get("/customers", { params: searchTerm ? { search: searchTerm } : {} })
+      .get("/customers", { params })
       .then((res) => {
         setCustomers(res.data.data.customers);
-        setTotal(res.data.data.customers.length);
+        setTotal(res.data.data.pagination.total);
+        setPage(res.data.data.pagination.page);
+        setPages(res.data.data.pagination.pages);
       })
       .catch((err) => setError(err.response?.data?.message || "Failed to load customers"))
       .finally(() => setLoading(false));
@@ -30,14 +37,19 @@ function Customers() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    loadCustomers(search);
+    loadCustomers(search, 1); // any new search starts back at page 1
+  };
+
+  const goToPage = (p) => {
+    if (p < 1 || p > pages) return;
+    loadCustomers(search, p);
   };
 
   const handleDelete = async (id, name) => {
     if (!window.confirm(`Delete customer "${name}"? This cannot be undone.`)) return;
     try {
       await api.delete(`/customers/${id}`);
-      loadCustomers(search);
+      loadCustomers(search, page);
     } catch (err) {
       alert(err.response?.data?.message || "Failed to delete customer");
     }
@@ -143,6 +155,30 @@ function Customers() {
             ))}
           </tbody>
         </table>
+
+        {!loading && pages > 1 && (
+          <div className="flex items-center justify-between px-5 py-4 border-t border-slate-100">
+            <p className="text-sm text-slate-500">
+              Page {page} of {pages}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => goToPage(page - 1)}
+                disabled={page <= 1}
+                className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => goToPage(page + 1)}
+                disabled={page >= pages}
+                className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

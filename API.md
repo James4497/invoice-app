@@ -335,4 +335,4 @@ Fuller reporting: totals split by currency, top 5 customers by amount invoiced, 
 | View all users (`GET /auth/users`) | ❌ | ✅ |
 | Reset another user's password | ❌ | ✅ |
 
-The first account ever created on a fresh database automatically becomes `admin`. There is no endpoint to *promote* another account to admin — that's done directly in the database. An admin *can*, however, reset any other user's password via `PUT /auth/users/:id/reset-password`.
+//The first account ever created on a fresh database automatically becomes `admin`. There is no endpoint to *promote* another account to admin — that's done directly in the database. An admin *can*, however, reset any other user's password via `PUT /auth/users/:id/reset-password`.

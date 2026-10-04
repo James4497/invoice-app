@@ -25,50 +25,75 @@ function Invoices() {
   const [searchParams, setSearchParams] = useSearchParams();
   const search = searchParams.get("search") || "";
   const status = searchParams.get("status") || "";
+  const page = parseInt(searchParams.get("page"), 10) || 1;
 
   const [invoices, setInvoices] = useState([]);
   const [counts, setCounts] = useState({ unpaid: 0, "part-paid": 0, paid: 0 });
+  const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const loadInvoices = (statusFilter, searchTerm) => {
+  const loadInvoices = (statusFilter, searchTerm, pageNum) => {
     setLoading(true);
     setError("");
-    const params = {};
+    const params = { page: pageNum };
     if (statusFilter) params.status = statusFilter;
     if (searchTerm) params.search = searchTerm;
 
     api
       .get("/invoices", { params })
       .then((res) => {
-        const list = res.data.data.invoices;
-        setInvoices(list);
-        setCounts({
-          unpaid: list.filter((i) => i.status === "unpaid").length,
-          "part-paid": list.filter((i) => i.status === "part-paid").length,
-          paid: list.filter((i) => i.status === "paid").length,
-        });
+        setInvoices(res.data.data.invoices);
+        setPages(res.data.data.pagination.pages);
+        setTotal(res.data.data.pagination.total);
       })
       .catch((err) => setError(err.response?.data?.message || "Failed to load invoices"))
       .finally(() => setLoading(false));
   };
 
-  // Reload whenever the status or search term in the address bar changes
+  // True counts across ALL invoices, independent of filters or pagination —
+  // same endpoint the Dashboard uses, loaded once on mount
+  const loadCounts = () => {
+    api
+      .get("/invoices/summary")
+      .then((res) => setCounts(res.data.data.invoicesByStatus))
+      .catch(() => {
+        /* non-critical — the cards just won't update if this fails */
+      });
+  };
+
+  // Reload the list whenever the status, search term, or page in the address bar changes
   useEffect(() => {
-    loadInvoices(status, search);
-  }, [status, search]);
+    loadInvoices(status, search, page);
+  }, [status, search, page]);
+
+  // Load the true counts once, on mount
+  useEffect(() => {
+    loadCounts();
+  }, []);
 
   const handleFilterChange = (e) => {
     const value = e.target.value;
     const next = {};
     if (value) next.status = value;
     if (search) next.search = search;
+    // any new filter starts back at page 1 — no "page" key added
     setSearchParams(next);
   };
 
   const clearSearch = () => {
     const next = {};
     if (status) next.status = status;
+    setSearchParams(next);
+  };
+
+  const goToPage = (p) => {
+    if (p < 1 || p > pages) return;
+    const next = {};
+    if (status) next.status = status;
+    if (search) next.search = search;
+    if (p > 1) next.page = p;
     setSearchParams(next);
   };
 
@@ -195,6 +220,30 @@ function Invoices() {
             ))}
           </tbody>
         </table>
+
+        {!loading && pages > 1 && (
+          <div className="flex items-center justify-between px-5 py-4 border-t border-slate-100">
+            <p className="text-sm text-slate-500">
+              Page {page} of {pages} · {total} total
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => goToPage(page - 1)}
+                disabled={page <= 1}
+                className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => goToPage(page + 1)}
+                disabled={page >= pages}
+                className="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );

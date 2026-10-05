@@ -30,6 +30,11 @@ function CustomerForm() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handlePhoneChange = (e) => {
+    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 11);
+    setForm({ ...form, phone: digitsOnly });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -95,12 +100,17 @@ function CustomerForm() {
 
           <label className="block text-sm font-bold text-slate-800 mb-1.5">Phone</label>
           <input
-            type="text"
+            type="tel"
             name="phone"
             value={form.phone}
-            onChange={handleChange}
-            className={`${inputClass} mb-5`}
+            onChange={handlePhoneChange}
+            maxLength={11}
+            placeholder="08012345678"
+            className={`${inputClass} mb-1`}
           />
+          <p className="text-xs text-slate-400 mb-5">
+            {form.phone.length}/11 digits
+          </p>
 
           <label className="block text-sm font-bold text-slate-800 mb-1.5">Address</label>
           <input

@@ -3,6 +3,9 @@ const Customer = require("../models/Customer");
 const Invoice = require("../models/Invoice");
 
 const emailRegex = /^\S+@\S+\.\S+$/;
+// Starting with "+": international format, 8-15 digits after the plus
+// Not starting with "+": local Nigerian format, exactly 11 digits
+const phoneRegex = /^(\+[0-9]{8,15}|[0-9]{11})$/;
 
 const fail = (res, status, message) =>
   res.status(status).json({ success: false, message, data: null });
@@ -35,7 +38,9 @@ const validateCustomer = (body, { requireName }) => {
   if (email !== undefined && email !== "" && (typeof email !== "string" || !emailRegex.test(email))) {
     return "Please provide a valid email address";
   }
-  if (phone !== undefined && typeof phone !== "string") return "Phone must be text";
+  if (phone !== undefined && phone !== "" && !phoneRegex.test(phone)) {
+    return "Phone must be 11 digits (Nigerian) or start with + for an international number";
+  }
   if (address !== undefined && typeof address !== "string") return "Address must be text";
   return null;
 };

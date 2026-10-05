@@ -40,6 +40,20 @@ The token is returned by `/auth/login` and `/auth/register`, and expires accordi
 
 ---
 
+## Security
+
+A few protections apply across the whole API, not tied to any single endpoint:
+
+- **HTTP security headers** — the API uses `helmet`, which sets a batch of defensive response headers by default (e.g. preventing the app from being loaded inside a hidden iframe on another site).
+- **CORS allow-list** — only requests from the app's own frontend (`localhost:5173` in development, the deployed Vercel URL in production) are accepted. Requests from any other origin are rejected before they reach a route.
+- **Rate limiting on login and registration** — `POST /auth/login` and `POST /auth/register` are limited to 10 requests per 15 minutes per IP address, to slow down automated password-guessing. Exceeding the limit returns:
+  ```json
+  { "success": false, "message": "Too many attempts. Please try again in a few minutes.", "data": null }
+  ```
+  No other endpoints are rate-limited.
+
+---
+
 ## Auth
 
 ### `POST /auth/register`
@@ -335,4 +349,4 @@ Fuller reporting: totals split by currency, top 5 customers by amount invoiced, 
 | View all users (`GET /auth/users`) | ❌ | ✅ |
 | Reset another user's password | ❌ | ✅ |
 
-//The first account ever created on a fresh database automatically becomes `admin`. There is no endpoint to *promote* another account to admin — that's done directly in the database. An admin *can*, however, reset any other user's password via `PUT /auth/users/:id/reset-password`.
+The first account ever created on a fresh database automatically becomes `admin`. There is no endpoint to *promote* another account to admin — that's done directly in the database. An admin *can*, however, reset any other user's password via `PUT /auth/users/:id/reset-password`.

@@ -179,7 +179,8 @@ Creates a customer.
 ```
 - `name` is required and cannot be empty
 - `email`, if provided and non-empty, must look like a valid email address
-- `phone` and `address` are optional free text
+- `phone`, if provided and non-empty, must be either exactly 11 digits (a Nigerian number) or start with `+` followed by 8–15 digits (an international number)
+- `address` is optional free text
 
 **Response** `201`
 ```json

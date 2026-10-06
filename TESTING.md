@@ -48,6 +48,10 @@ Each endpoint was tested directly in Postman with a valid auth token (obtained f
 | 6 | Delete a customer as a **staff** account | `403`: `"You do not have permission to do this."` | ✅ Pass |
 | 7 | Delete a customer with no invoices, as **admin** | `200`, customer removed | ✅ Confirmed by code review — not re-run live in this session, since it would permanently remove real test data |
 | 8 | Delete a customer who **has** invoices, as admin | `409`, blocked to protect invoice history | ✅ Confirmed by code review — not re-run live in this session, for the same reason as above |
+| 9 | Create a customer with a valid 11-digit Nigerian phone number | `201`, customer saved with that phone number | ✅ Pass |
+| 10 | Create a customer with an international number (`+` followed by digits) | `201`, customer saved | ✅ Pass |
+| 11 | Type letters or symbols into the phone field in the UI | The characters are not accepted — the field only allows digits, and a leading `+` for international numbers | ✅ Pass |
+| 12 | Create a customer with a phone number that is neither 11 digits nor starts with `+` (e.g. too short, too long, or malformed) | `400`: `"Phone must be 11 digits (Nigerian) or start with + for an international number"` | ✅ Pass |
 
 ---
 
